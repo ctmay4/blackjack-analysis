@@ -76,7 +76,7 @@ data class Strategy(val type: StrategyType, val allowSurrender: Boolean = false,
         var current = mutableMapOf<Int, Map<Int, Action>>()
         File(ClassLoader.getSystemResource(type.file).file)
             .readLines(StandardCharsets.US_ASCII)
-            .filter { row -> !row.startsWith("#") && !row.trim().isEmpty() }
+            .filter { row -> !row.startsWith("#") && row.trim().isNotEmpty() }
             .map { row ->
                 when {
                     row.trim() == "[split]" -> current = splitMoves
