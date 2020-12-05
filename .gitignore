@@ -1,0 +1,9 @@
+/target
+/build
+/classes
+/dist
+/.idea
+/out
+*.iml
+.dbshell
+.gradle
