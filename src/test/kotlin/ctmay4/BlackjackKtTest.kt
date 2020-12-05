@@ -1,14 +1,14 @@
 package ctmay4
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-
+import assertk.assertThat
+import assertk.assertions.hasSize
+import org.junit.Test
 
 internal class BlackjackKtTest {
 
     @Test
     fun testGenerationDeck() {
-        assertEquals(52, generateDeck().size)
+        assertThat(generateDeck()).hasSize(52)
     }
 
 }

@@ -1,12 +1,14 @@
 package ctmay4
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import ctmay4.Decision.*
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import org.junit.Test
 
 internal class StrategyTest {
 
-    @Test
     private fun testAllCombinations(strategy: Strategy) {
         for (card1 in 2..11)
             for (card2 in 2..11)
@@ -35,15 +37,15 @@ internal class StrategyTest {
 
     @Test
     fun testIsSoft() {
-        assertThat(Hand.fromCards(listOf(2, 2)).soft).isFalse
-        assertThat(Hand.fromCards(listOf(10, 4, 11)).soft).isFalse
+        assertThat(Hand.fromCards(listOf(2, 2)).soft).isFalse()
+        assertThat(Hand.fromCards(listOf(10, 4, 11)).soft).isFalse()
 
-        assertThat(Hand.fromCards(listOf(11, 8)).soft).isTrue
-        assertThat(Hand.fromCards(listOf(8, 11)).soft).isTrue
-        assertThat(Hand.fromCards(listOf(9, 11)).soft).isTrue
-        assertThat(Hand.fromCards(listOf(11, 2)).soft).isTrue
-        assertThat(Hand.fromCards(listOf(2, 11)).soft).isTrue
-        assertThat(Hand.fromCards(listOf(11, 11, 11)).soft).isTrue
+        assertThat(Hand.fromCards(listOf(11, 8)).soft).isTrue()
+        assertThat(Hand.fromCards(listOf(8, 11)).soft).isTrue()
+        assertThat(Hand.fromCards(listOf(9, 11)).soft).isTrue()
+        assertThat(Hand.fromCards(listOf(11, 2)).soft).isTrue()
+        assertThat(Hand.fromCards(listOf(2, 11)).soft).isTrue()
+        assertThat(Hand.fromCards(listOf(11, 11, 11)).soft).isTrue()
     }
 
     @Test
@@ -52,28 +54,28 @@ internal class StrategyTest {
         assertThat(hand.numAces).isEqualTo(1)
         assertThat(hand.softTotal).isEqualTo(9)
         assertThat(hand.total).isEqualTo(19)
-        assertThat(hand.soft).isTrue
+        assertThat(hand.soft).isTrue()
 
         hand = Hand.fromCards(listOf(11, 2, 11))
         assertThat(hand.numAces).isEqualTo(2)
         assertThat(hand.softTotal).isEqualTo(4)
         assertThat(hand.total).isEqualTo(14)
-        assertThat(hand.soft).isTrue
+        assertThat(hand.soft).isTrue()
 
         hand = Hand.fromCards(listOf(10, 6))
         assertThat(hand.total).isEqualTo(16)
-        assertThat(hand.bust).isFalse
+        assertThat(hand.bust).isFalse()
         hand += 10
         assertThat(hand.total).isEqualTo(26)
-        assertThat(hand.bust).isTrue
+        assertThat(hand.bust).isTrue()
 
         hand = Hand.fromCards(listOf(10, 6, 11, 11))
         assertThat(hand.total).isEqualTo(18)
-        assertThat(hand.bust).isFalse
+        assertThat(hand.bust).isFalse()
 
         hand = Hand.fromCards(listOf(10, 6, 4, 11, 11))
         assertThat(hand.total).isEqualTo(22)
-        assertThat(hand.bust).isTrue
+        assertThat(hand.bust).isTrue()
     }
 
     @Test
