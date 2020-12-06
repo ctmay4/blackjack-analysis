@@ -101,7 +101,7 @@ data class Strategy(val type: StrategyType, val allowSurrender: Boolean = false,
 
         val action = when {
             player.canSplit -> splitMoves[player.cards[0]]?.get(dealer)   // player has two cards that are the same, use split rules
-            player.soft -> softMoves[player.softTotal]?.get(dealer)   // player hand is "soft", use soft rules
+            player.soft -> softMoves[player.softTotal]?.get(dealer)       // player hand is "soft", use soft rules
             else -> hardMoves[player.total]?.get(dealer)                  // otherwise use "hard" rules
         }
             ?: throw IllegalArgumentException("Unable to find decide for hand ${player.cards} with dealer showing [$dealer]")
