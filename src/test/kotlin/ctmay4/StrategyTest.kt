@@ -91,7 +91,7 @@ internal class StrategyTest {
         // test totals
         assertThat(moves.decide(6, Hand.fromCards(listOf(5, 10)))).isEqualTo(STAND)
         assertThat(moves.decide(10, Hand.fromCards(listOf(5, 6)))).isEqualTo(DOUBLE)
-        assertThat(moves.decide(10, Hand.fromCards(listOf(10, 6)))).isEqualTo(HIT)
+        assertThat(moves.decide(10, Hand.fromCards(listOf(10, 6)))).isEqualTo(SURRENDER)
 
         // test first move
         assertThat(moves.decide(10, Hand.fromCards(listOf(11, 11)))).isEqualTo(SPLIT)
