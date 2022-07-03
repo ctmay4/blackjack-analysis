@@ -34,7 +34,7 @@ class Hand private constructor(val cards: List<Int>) {
             else -> 21 - (cards.filter { x -> x != 11 }.sum() + (numAces - 1)) >= 11  // if any number of aces can be added in at their primary value then the hand is soft
         }
     }
-    val softTotal: Int = cards.sumBy { x -> if (x == 11) 1 else x }
+    val softTotal: Int = cards.sumOf { x -> if (x == 11) 1 else x }
     val canSplit: Boolean = cards.size == 2 && cards[0] == cards[1]
     val blackjack: Boolean = cards.size == 2 && total == 21
     val bust: Boolean = total > 21

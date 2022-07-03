@@ -8,7 +8,7 @@ fun generateDealerDeck() = (generateDeck() * 8).shuffled()
 
 private operator fun <E> List<E>.times(num: Int) = (1..num).flatMap { this }
 
-fun List<Int>.trueCount(): Int = -sumBy(::cardValue) * 52 / size
+fun List<Int>.trueCount(): Int = -sumOf(::cardValue) * 52 / size
 
 fun cardValue(card: Int) = when (card) {
     in 2..6 -> 1
