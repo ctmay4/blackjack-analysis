@@ -249,11 +249,17 @@ def run_simulations(
     rules=None,
     bankroll=INITIAL_MONEY,
     seed=None,
+    progress=None,
 ):
     if simulations < 1:
         raise ValueError("simulations must be at least 1")
     rng = random.Random(seed)
-    results = [simulate(strategy_type, rules, bankroll, rng) for _ in range(simulations)]
+    results = []
+    for completed in range(1, simulations + 1):
+        result = simulate(strategy_type, rules, bankroll, rng)
+        results.append(result)
+        if progress is not None:
+            progress(completed, result)
     return AggregateResult(
         simulations=simulations,
         average_profit=mean(result.profit for result in results),
@@ -289,6 +295,7 @@ def main(argv=None):
     parser.add_argument("--max-splits", type=int, default=3)
     parser.add_argument("--no-resplit-aces", action="store_true")
     parser.add_argument("--allow-more-than-one-card-on-split-aces", action="store_true")
+    parser.add_argument("--tui", action="store_true", help="show live simulation progress")
     args = parser.parse_args(argv)
 
     strategy_type = StrategyType(args.strategy)
@@ -303,8 +310,21 @@ def main(argv=None):
         one_card_on_split_aces=not args.allow_more_than_one_card_on_split_aces,
     )
     started = time.perf_counter()
-    result = run_simulations(args.simulations, strategy_type, rules, args.bankroll, args.seed)
+    progress = None
+    display = None
+    if args.tui:
+        from .tui import ProgressDisplay
+
+        display = ProgressDisplay(args.simulations, args.bankroll)
+        progress = display.update
+    result = run_simulations(
+        args.simulations, strategy_type, rules, args.bankroll, args.seed, progress
+    )
     elapsed_ms = int((time.perf_counter() - started) * 1000)
+
+    if display is not None:
+        display.finish(result)
+        return
 
     print(f"Average profit: ${result.average_profit:,.2f}")
     print(f"Average final bankroll: ${result.average_final_bankroll:,.2f}")

@@ -10,6 +10,12 @@ No installation is required; the project uses only the Python standard library:
 python3 -m blackjack_analysis --simulations 10000 --strategy stand_soft_17 --seed 42
 ```
 
+Add `--tui` for a live terminal dashboard with progress and outcome counts:
+
+```sh
+python3 -m blackjack_analysis --simulations 10000 --seed 42 --tui
+```
+
 Useful options include:
 
 - `--strategy stand_soft_17|hit_soft_17`
@@ -22,6 +28,7 @@ Useful options include:
 - `--max-splits N`
 - `--no-resplit-aces`
 - `--allow-more-than-one-card-on-split-aces`
+- `--tui`
 
 The output includes average profit, average and range of final bankrolls,
 profit standard deviation, wins, losses, pushes, surrenders, blackjacks, rates,
