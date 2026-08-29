@@ -66,6 +66,12 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(result.hands, 1)
         self.assertEqual(result.profit, -25)
 
+    def test_progress_callback_receives_each_simulation(self):
+        updates = []
+        result = run_simulations(3, rules=Rules(decks=1, penetration=0.75), seed=42, progress=lambda n, item: updates.append((n, item)))
+        self.assertEqual([n for n, _ in updates], [1, 2, 3])
+        self.assertEqual(sum(item.hands for _, item in updates), result.hands)
+
     def test_seeded_runs_are_reproducible(self):
         rules = Rules(decks=1, penetration=0.75)
         first = run_simulations(3, rules=rules, seed=42)
