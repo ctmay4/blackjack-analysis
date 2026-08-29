@@ -66,6 +66,14 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(result.hands, 1)
         self.assertEqual(result.profit, -25)
 
+    def test_tracks_betting_and_counting_stats(self):
+        result = self.one_round([7, 7, 10, 10])
+        self.assertEqual(result.min_bet, 25)
+        self.assertEqual(result.max_bet, 25)
+        self.assertEqual(result.raised_bets, 0)
+        self.assertEqual(result.min_count, 0)
+        self.assertEqual(result.max_count, 0)
+
     def test_progress_callback_receives_each_simulation(self):
         updates = []
         result = run_simulations(3, rules=Rules(decks=1, penetration=0.75), seed=42, progress=lambda n, item: updates.append((n, item)))
