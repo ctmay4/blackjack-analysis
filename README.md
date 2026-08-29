@@ -30,9 +30,11 @@ Useful options include:
 - `--allow-more-than-one-card-on-split-aces`
 - `--tui`
 
-The output includes average profit, average and range of final bankrolls,
+The final output includes average profit, average and range of final bankrolls,
 profit standard deviation, wins, losses, pushes, surrenders, blackjacks, rates,
-average bet, and elapsed time.
+average bet, and elapsed time. The TUI additionally shows live confidence
+intervals, betting/counting ranges, return on action, and a profit convergence
+sparkline.
 
 ## Rules modeled
 

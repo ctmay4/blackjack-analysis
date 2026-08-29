@@ -1,3 +1,4 @@
+import math
 import shutil
 import sys
 import time
@@ -29,6 +30,16 @@ class ProgressDisplay:
         self.total_bet = 0.0
         self.rounds = self.hands = self.wins = self.losses = self.pushes = 0
         self.surrenders = self.blackjacks = 0
+        self.min_bet = None
+        self.max_bet = 0.0
+        self.raised_bets = 0
+        self.min_count = None
+        self.max_count = None
+        self.min_final_bankroll = None
+        self.max_final_bankroll = None
+        self.mean_profit = 0.0
+        self.profit_m2 = 0.0
+        self.convergence = []
 
     def _paint(self, text, color):
         return f"{color}{text}{RESET}" if self.interactive else text
@@ -67,7 +78,25 @@ class ProgressDisplay:
     def update(self, completed, result):
         self.completed = completed
         self.profit += result.profit
+        delta = result.profit - self.mean_profit
+        self.mean_profit += delta / completed
+        self.profit_m2 += delta * (result.profit - self.mean_profit)
         self.total_bet += result.total_bet
+        self.min_bet = result.min_bet if self.min_bet is None else min(self.min_bet, result.min_bet)
+        self.max_bet = max(self.max_bet, result.max_bet)
+        self.raised_bets += result.raised_bets
+        self.min_count = result.min_count if self.min_count is None else min(self.min_count, result.min_count)
+        self.max_count = result.max_count if self.max_count is None else max(self.max_count, result.max_count)
+        self.min_final_bankroll = (
+            result.final_bankroll
+            if self.min_final_bankroll is None
+            else min(self.min_final_bankroll, result.final_bankroll)
+        )
+        self.max_final_bankroll = (
+            result.final_bankroll
+            if self.max_final_bankroll is None
+            else max(self.max_final_bankroll, result.final_bankroll)
+        )
         self.rounds += result.rounds
         self.hands += result.hands
         self.wins += result.wins
@@ -77,6 +106,19 @@ class ProgressDisplay:
         self.blackjacks += result.blackjacks
         if self.interactive and time.monotonic() - self._last_render >= 0.1:
             self.render()
+
+    def _sparkline(self, values, width):
+        values = values[-width:]
+        if not values:
+            return " " * width
+        low, high = min(values), max(values)
+        levels = "▁▂▃▄▅▆▇█"
+        if low == high:
+            return levels[len(levels) // 2] * len(values)
+        return "".join(
+            levels[min(len(levels) - 1, int((value - low) / (high - low) * len(levels)))]
+            for value in values
+        ).rjust(width)
 
     def render(self, status="RUNNING", final=None, elapsed=None):
         completed = final.simulations if final is not None else self.completed
@@ -93,6 +135,16 @@ class ProgressDisplay:
             if final is not None
             else self.total_bet / self.hands if self.hands else 0.0
         )
+        stddev = (
+            final.profit_stddev
+            if final is not None
+            else math.sqrt(self.profit_m2 / (completed - 1)) if completed > 1 else 0.0
+        )
+        if completed > 1:
+            sample_stddev = stddev * math.sqrt(completed / (completed - 1))
+            confidence_margin = 1.96 * sample_stddev / math.sqrt(completed)
+        else:
+            confidence_margin = 0.0
         rounds = final.rounds if final is not None else self.rounds
         hands = final.hands if final is not None else self.hands
         wins = final.wins if final is not None else self.wins
@@ -117,11 +169,38 @@ class ProgressDisplay:
         bar_width = max(10, full_width - 2)
         filled = min(bar_width, int(bar_width * percent))
         bar = "█" * filled + "░" * (bar_width - filled)
+        min_final_bankroll = (
+            final.min_final_bankroll if final is not None else self.min_final_bankroll
+        )
+        max_final_bankroll = (
+            final.max_final_bankroll if final is not None else self.max_final_bankroll
+        )
         range_text = (
-            f"${final.min_final_bankroll:,.0f} - ${final.max_final_bankroll:,.0f}"
-            if final is not None
+            f"${min_final_bankroll:,.0f} - ${max_final_bankroll:,.0f}"
+            if min_final_bankroll is not None
             else "pending"
         )
+        min_bet = final.min_bet if final is not None else self.min_bet
+        max_bet = final.max_bet if final is not None else self.max_bet
+        raised_bets = final.raised_bets if final is not None else self.raised_bets
+        min_count = final.min_count if final is not None else self.min_count
+        max_count = final.max_count if final is not None else self.max_count
+        bet_range = (
+            f"${min_bet:,.0f} - ${max_bet:,.0f}"
+            if min_bet is not None
+            else "pending"
+        )
+        total_bet = final.total_bet if final is not None else self.total_bet
+        total_profit = average_profit * completed
+        return_on_action = total_profit / total_bet if total_bet else 0.0
+        raised_rate = raised_bets / rounds if rounds else 0.0
+        count_range = (
+            f"{min_count:+d} to {max_count:+d}"
+            if min_count is not None
+            else "pending"
+        )
+        if completed and (not self.convergence or self.convergence[-1] != average_profit):
+            self.convergence.append(average_profit)
         status_color = GREEN if status == "COMPLETE" else CYAN
 
         lines = [
@@ -153,6 +232,7 @@ class ProgressDisplay:
                 [
                     ("Avg profit", f"${average_profit:,.2f}", GREEN if average_profit >= 0 else RED),
                     ("Avg bankroll", f"${average_bankroll:,.2f}", GREEN),
+                    ("95% CI", f"±${confidence_margin:,.2f}", GREEN),
                     ("Avg bet", f"${average_bet:,.2f}", YELLOW),
                     ("Final range", range_text, DIM),
                 ],
@@ -194,15 +274,22 @@ class ProgressDisplay:
                 lines.extend(box)
                 lines.append("")
 
+        sparkline = self._sparkline(self.convergence, max(10, full_width - 28))
+        lines.extend(
+            [
+                "",
+                *self._box(
+                    "LIVE METRICS",
+                    [
+                        ("Avg profit/shoe", f"${average_profit:,.2f}  {sparkline}", GREEN if average_profit >= 0 else RED),
+                        ("Wagering", f"Total: ${total_bet:,.0f}  Range: {bet_range}  Return/action: {return_on_action:+.2%}  Raised: {raised_rate:.1%}  Count: {count_range}", YELLOW),
+                    ],
+                    full_width,
+                ),
+            ]
+        )
         if final is not None:
-            lines.extend(
-                [
-                    "",
-                    self._paint(
-                        f"Profit standard deviation: ${final.profit_stddev:,.2f}", DIM
-                    ),
-                ]
-            )
+            lines.append(self._paint(f"Profit standard deviation: ${stddev:,.2f}", DIM))
         prefix = "\x1b[2J\x1b[H" if self.interactive else ""
         self.stream.write(prefix + "\n".join(lines) + "\n")
         self.stream.flush()

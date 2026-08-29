@@ -75,6 +75,11 @@ class SimulationResult:
     surrenders: int
     blackjacks: int
     total_bet: float
+    min_bet: float = 0.0
+    max_bet: float = 0.0
+    raised_bets: int = 0
+    min_count: int = 0
+    max_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -93,6 +98,11 @@ class AggregateResult:
     min_final_bankroll: float
     max_final_bankroll: float
     profit_stddev: float
+    min_bet: float = 0.0
+    max_bet: float = 0.0
+    raised_bets: int = 0
+    min_count: int = 0
+    max_count: int = 0
 
     @property
     def win_rate(self):
@@ -140,7 +150,17 @@ def simulate(
         "surrenders": 0,
         "blackjacks": 0,
         "total_bet": 0.0,
+        "min_bet": None,
+        "max_bet": 0.0,
+        "raised_bets": 0,
+        "min_count": None,
+        "max_count": None,
     }
+
+    def record_bet(bet):
+        counts["total_bet"] += bet
+        counts["min_bet"] = bet if counts["min_bet"] is None else min(counts["min_bet"], bet)
+        counts["max_bet"] = max(counts["max_bet"], bet)
 
     def draw():
         if not cards:
@@ -150,14 +170,18 @@ def simulate(
     while len(cards) > shuffle_point:
         dealer_up_card = draw()
         initial_hand = Hand.from_cards((draw(), draw()))
-        initial_bet = get_bet_size(true_count(cards), bankroll_value)
+        count = true_count(cards)
+        initial_bet = get_bet_size(count, bankroll_value)
+        counts["raised_bets"] += initial_bet > 25.0
+        counts["min_count"] = count if counts["min_count"] is None else min(counts["min_count"], count)
+        counts["max_count"] = count if counts["max_count"] is None else max(counts["max_count"], count)
         dealer_hand = Hand.from_cards((dealer_up_card, draw()))
         counts["rounds"] += 1
 
         # Check a natural dealer blackjack before allowing doubles or splits.
         if dealer_hand.blackjack:
             counts["hands"] += 1
-            counts["total_bet"] += initial_bet
+            record_bet(initial_bet)
             if initial_hand.blackjack:
                 counts["blackjacks"] += 1
                 counts["pushes"] += 1
@@ -210,7 +234,7 @@ def simulate(
 
         for bet, player_hand, split_hand in bets_and_hands:
             counts["hands"] += 1
-            counts["total_bet"] += bet
+            record_bet(bet)
             if not player_hand.cards:
                 bankroll_value -= bet * 0.5
                 counts["surrenders"] += 1
@@ -275,6 +299,11 @@ def run_simulations(
         min_final_bankroll=min(result.final_bankroll for result in results),
         max_final_bankroll=max(result.final_bankroll for result in results),
         profit_stddev=pstdev(result.profit for result in results),
+        min_bet=min(result.min_bet for result in results),
+        max_bet=max(result.max_bet for result in results),
+        raised_bets=sum(result.raised_bets for result in results),
+        min_count=min(result.min_count for result in results),
+        max_count=max(result.max_count for result in results),
     )
 
 
