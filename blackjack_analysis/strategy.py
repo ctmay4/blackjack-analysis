@@ -17,6 +17,15 @@ class Decision(Enum):
 
 
 @dataclass(frozen=True)
+class Recommendation:
+    action: Decision
+    hand_kind: str
+    player_total: int
+    dealer_card: int
+    explanation: str
+
+
+@dataclass(frozen=True)
 class Hand:
     cards: tuple[int, ...]
 
@@ -153,3 +162,23 @@ class Strategy:
         if action is _Action.RP:
             return Decision.SURRENDER if self.allow_surrender and first_turn and len(player.cards) == 2 else Decision.SPLIT
         raise ValueError(f"Unknown strategy action: {action}")
+
+    def recommend(self, dealer, player, first_turn=True, can_double=True, can_split=True):
+        action = self.decide(dealer, player, first_turn, can_double, can_split)
+        hand_kind = "pair" if player.can_split and can_split else "soft" if player.soft else "hard"
+        description = (
+            f"pair of {player.cards[0]}s"
+            if hand_kind == "pair"
+            else f"{hand_kind} {player.total}"
+        )
+        dealer_label = "A" if dealer == 11 else str(dealer)
+        return Recommendation(
+            action=action,
+            hand_kind=hand_kind,
+            player_total=player.total,
+            dealer_card=dealer,
+            explanation=(
+                f"Basic strategy recommends {action.value} with {description} "
+                f"against dealer {dealer_label}."
+            ),
+        )

@@ -1,13 +1,20 @@
+import io
 import unittest
 
 from blackjack_analysis.blackjack import Rules, run_simulations, simulate
+from blackjack_analysis.tui import ProgressDisplay
 from blackjack_analysis.strategy import StrategyType
 
 
 class SimulationTests(unittest.TestCase):
     def one_round(self, shoe, strategy_type=StrategyType.STANDS_ON_SOFT_17, **kwargs):
         rules = Rules(penetration=0.99, **kwargs)
-        return simulate(strategy_type=strategy_type, rules=rules, shoe=shoe)
+        return simulate(
+            strategy_type=strategy_type,
+            rules=rules,
+            bankroll=1_000,
+            shoe=shoe,
+        )
 
     def test_push_does_not_change_bankroll(self):
         # Pop order: dealer up, player cards, dealer hole.
@@ -70,9 +77,57 @@ class SimulationTests(unittest.TestCase):
         result = self.one_round([7, 7, 10, 10])
         self.assertEqual(result.min_bet, 25)
         self.assertEqual(result.max_bet, 25)
+        self.assertEqual(result.initial_bet_total, 25)
+        self.assertEqual(result.min_initial_bet, 25)
+        self.assertEqual(result.max_initial_bet, 25)
         self.assertEqual(result.raised_bets, 0)
-        self.assertEqual(result.min_count, 0)
-        self.assertEqual(result.max_count, 0)
+        self.assertEqual(result.min_count, 26)
+        self.assertEqual(result.max_count, 26)
+        self.assertEqual(result.stands, 1)
+        self.assertEqual(result.hits, 0)
+        self.assertEqual(result.doubles, 0)
+        self.assertEqual(result.splits, 0)
+        self.assertEqual(result.player_busts, 0)
+        self.assertEqual(result.dealer_busts, 0)
+        self.assertEqual(result.min_bankroll, 1_000)
+        self.assertEqual(result.max_drawdown, 0)
+
+    def test_rates_exclude_surrenders_from_resolved_outcomes(self):
+        result = self.one_round([7, 6, 10, 10], allow_surrender=True)
+        self.assertEqual(result.hands - result.surrenders, 0)
+        self.assertEqual(result.win_rate, 0.0)
+        self.assertEqual(result.loss_rate, 0.0)
+        self.assertEqual(result.push_rate, 0.0)
+        self.assertEqual(result.surrender_rate, 1.0)
+
+    def test_tui_displays_extended_metrics(self):
+        stream = io.StringIO()
+        display = ProgressDisplay(1, 1_000, stream, strategy="stand_soft_17")
+        result = run_simulations(1, bankroll=1_000, seed=42, progress=display.update)
+        display.finish(result)
+        output = stream.getvalue()
+        self.assertIn("● COMPLETE   stand_soft_17   1 / 1 simulations", output)
+        self.assertIn("Approx. 95% CI", output)
+        self.assertIn("WAGERING & COUNTING", output)
+        self.assertIn("ACTIONS", output)
+        self.assertIn("p05/p50/p95", output)
+
+    def test_tui_paired_panels_have_aligned_borders(self):
+        stream = io.StringIO()
+        display = ProgressDisplay(1, 1_000, stream, strategy="stand_soft_17")
+        result = run_simulations(1, bankroll=1_000, seed=42, progress=display.update)
+        display.finish(result)
+        lines = stream.getvalue().splitlines()
+
+        for left_title, right_title in (
+            ("SIMULATION", "BANKROLL"),
+            ("OUTCOMES", "RATES"),
+            ("WAGERING & COUNTING", "ACTIONS"),
+        ):
+            top = next(index for index, line in enumerate(lines) if left_title in line and right_title in line)
+            bottom = next(line for line in lines[top + 1:] if line.startswith("╰"))
+            self.assertEqual(bottom.count("╰"), 2)
+            self.assertEqual(bottom.count("╯"), 2)
 
     def test_progress_callback_receives_each_simulation(self):
         updates = []

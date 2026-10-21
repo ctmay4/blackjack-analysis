@@ -1,11 +1,12 @@
 import argparse
 import random
+import sys
 import time
 from dataclasses import dataclass
 from statistics import mean, pstdev
 
+from .game import BlackjackGame, Outcome, Rules, Shoe
 from .strategy import Decision, Hand, Strategy, StrategyType
-
 
 INITIAL_MONEY = 100_000.0
 
@@ -43,24 +44,13 @@ def get_bet_size(count, bankroll):
     return min(1000.0, max(25.0, betting_unit * (count - 1)))
 
 
-@dataclass(frozen=True)
-class Rules:
-    decks: int = 8
-    penetration: float = 0.25
-    dealer_hits_soft_17: bool = False
-    allow_surrender: bool = False
-    double_after_split: bool = True
-    max_splits: int = 3
-    resplit_aces: bool = True
-    one_card_on_split_aces: bool = True
-
-    def __post_init__(self):
-        if self.decks < 1:
-            raise ValueError("decks must be at least 1")
-        if not 0 < self.penetration < 1:
-            raise ValueError("penetration must be between 0 and 1")
-        if self.max_splits < 0:
-            raise ValueError("max_splits cannot be negative")
+def percentile(values, fraction):
+    """Return a linearly interpolated percentile from a non-empty sequence."""
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * fraction
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
 
 
 @dataclass(frozen=True)
@@ -80,6 +70,40 @@ class SimulationResult:
     raised_bets: int = 0
     min_count: int = 0
     max_count: int = 0
+    initial_bet_total: float = 0.0
+    min_initial_bet: float = 0.0
+    max_initial_bet: float = 0.0
+    count_total: int = 0
+    hits: int = 0
+    stands: int = 0
+    doubles: int = 0
+    splits: int = 0
+    player_busts: int = 0
+    dealer_busts: int = 0
+    dealer_blackjacks: int = 0
+    dealer_resolved_rounds: int = 0
+    min_bankroll: float = 0.0
+    max_drawdown: float = 0.0
+
+    @property
+    def resolved_hands(self):
+        return self.hands - self.surrenders
+
+    @property
+    def win_rate(self):
+        return self.wins / self.resolved_hands if self.resolved_hands else 0.0
+
+    @property
+    def loss_rate(self):
+        return self.losses / self.resolved_hands if self.resolved_hands else 0.0
+
+    @property
+    def push_rate(self):
+        return self.pushes / self.resolved_hands if self.resolved_hands else 0.0
+
+    @property
+    def surrender_rate(self):
+        return self.surrenders / self.hands if self.hands else 0.0
 
 
 @dataclass(frozen=True)
@@ -103,22 +127,83 @@ class AggregateResult:
     raised_bets: int = 0
     min_count: int = 0
     max_count: int = 0
+    initial_bet_total: float = 0.0
+    min_initial_bet: float = 0.0
+    max_initial_bet: float = 0.0
+    count_total: int = 0
+    hits: int = 0
+    stands: int = 0
+    doubles: int = 0
+    splits: int = 0
+    player_busts: int = 0
+    dealer_busts: int = 0
+    dealer_blackjacks: int = 0
+    dealer_resolved_rounds: int = 0
+    min_bankroll: float = 0.0
+    max_drawdown: float = 0.0
+    average_max_drawdown: float = 0.0
+    profitable_simulations: int = 0
+    losing_simulations: int = 0
+    breakeven_simulations: int = 0
+    profit_p05: float = 0.0
+    profit_median: float = 0.0
+    profit_p95: float = 0.0
+
+    @property
+    def resolved_hands(self):
+        return self.hands - self.surrenders
 
     @property
     def win_rate(self):
-        return self.wins / self.hands if self.hands else 0.0
+        return self.wins / self.resolved_hands if self.resolved_hands else 0.0
 
     @property
     def loss_rate(self):
-        return self.losses / self.hands if self.hands else 0.0
+        return self.losses / self.resolved_hands if self.resolved_hands else 0.0
 
     @property
     def push_rate(self):
-        return self.pushes / self.hands if self.hands else 0.0
+        return self.pushes / self.resolved_hands if self.resolved_hands else 0.0
+
+    @property
+    def surrender_rate(self):
+        return self.surrenders / self.hands if self.hands else 0.0
+
+    @property
+    def blackjack_rate(self):
+        return self.blackjacks / self.rounds if self.rounds else 0.0
+
+    @property
+    def player_bust_rate(self):
+        return self.player_busts / self.hands if self.hands else 0.0
+
+    @property
+    def dealer_bust_rate(self):
+        return self.dealer_busts / self.dealer_resolved_rounds if self.dealer_resolved_rounds else 0.0
 
     @property
     def average_bet(self):
         return self.total_bet / self.hands if self.hands else 0.0
+
+    @property
+    def average_initial_bet(self):
+        return self.initial_bet_total / self.rounds if self.rounds else 0.0
+
+    @property
+    def average_count(self):
+        return self.count_total / self.rounds if self.rounds else 0.0
+
+    @property
+    def return_on_wager(self):
+        return self.average_profit * self.simulations / self.total_bet if self.total_bet else 0.0
+
+    @property
+    def profit_per_100_hands(self):
+        return self.average_profit * 100 * self.simulations / self.hands if self.hands else 0.0
+
+    @property
+    def profit_per_100_rounds(self):
+        return self.average_profit * 100 * self.simulations / self.rounds if self.rounds else 0.0
 
 
 def simulate(
@@ -139,7 +224,8 @@ def simulate(
         double_after_split=rules.double_after_split,
     )
     cards = list(shoe) if shoe is not None else generate_dealer_deck(rules.decks, rng)
-    shuffle_point = len(cards) * rules.penetration
+    game = BlackjackGame(rules, Shoe(cards), rng)
+    shuffle_point = len(game.shoe) * rules.penetration
     bankroll_value = bankroll
     counts = {
         "rounds": 0,
@@ -155,110 +241,105 @@ def simulate(
         "raised_bets": 0,
         "min_count": None,
         "max_count": None,
+        "initial_bet_total": 0.0,
+        "min_initial_bet": None,
+        "max_initial_bet": 0.0,
+        "count_total": 0,
+        "hits": 0,
+        "stands": 0,
+        "doubles": 0,
+        "splits": 0,
+        "player_busts": 0,
+        "dealer_busts": 0,
+        "dealer_blackjacks": 0,
+        "dealer_resolved_rounds": 0,
+        "min_bankroll": bankroll,
+        "max_drawdown": 0.0,
     }
+    peak_bankroll = bankroll
 
     def record_bet(bet):
         counts["total_bet"] += bet
         counts["min_bet"] = bet if counts["min_bet"] is None else min(counts["min_bet"], bet)
         counts["max_bet"] = max(counts["max_bet"], bet)
 
-    def draw():
-        if not cards:
-            raise RuntimeError("shoe ran out of cards")
-        return cards.pop()
+    def record_bankroll():
+        nonlocal peak_bankroll
+        peak_bankroll = max(peak_bankroll, bankroll_value)
+        counts["min_bankroll"] = min(counts["min_bankroll"], bankroll_value)
+        counts["max_drawdown"] = max(counts["max_drawdown"], peak_bankroll - bankroll_value)
 
-    while len(cards) > shuffle_point:
-        dealer_up_card = draw()
-        initial_hand = Hand.from_cards((draw(), draw()))
-        count = true_count(cards)
+    while len(game.shoe) > shuffle_point:
+        # The wager is chosen before any cards from this round are exposed.
+        count = true_count(game.shoe.values)
         initial_bet = get_bet_size(count, bankroll_value)
+        counts["initial_bet_total"] += initial_bet
+        counts["min_initial_bet"] = (
+            initial_bet
+            if counts["min_initial_bet"] is None
+            else min(counts["min_initial_bet"], initial_bet)
+        )
+        counts["max_initial_bet"] = max(counts["max_initial_bet"], initial_bet)
         counts["raised_bets"] += initial_bet > 25.0
+        counts["count_total"] += count
         counts["min_count"] = count if counts["min_count"] is None else min(counts["min_count"], count)
         counts["max_count"] = count if counts["max_count"] is None else max(counts["max_count"], count)
-        dealer_hand = Hand.from_cards((dealer_up_card, draw()))
         counts["rounds"] += 1
-
-        # Check a natural dealer blackjack before allowing doubles or splits.
-        if dealer_hand.blackjack:
-            counts["hands"] += 1
-            record_bet(initial_bet)
-            if initial_hand.blackjack:
-                counts["blackjacks"] += 1
-                counts["pushes"] += 1
-            else:
-                counts["losses"] += 1
-                bankroll_value -= initial_bet
-            continue
-
-        def play_from(player_hand, bet, first_turn, split_hand, splits_used):
-            can_split = (
-                player_hand.can_split
-                and splits_used < rules.max_splits
-                and (rules.resplit_aces or player_hand.cards[0] != 11)
-            )
-            can_double = len(player_hand.cards) == 2 and (
-                not split_hand or rules.double_after_split
-            )
+        round_state = game.start_round(initial_bet)
+        dealer_up_card = round_state.dealer_cards[0].value
+        while round_state.result is None:
+            player_hand = round_state.active_hand
+            available = game.available_actions
             decision = strategy.decide(
                 dealer_up_card,
-                player_hand,
-                first_turn=first_turn,
-                can_double=can_double,
-                can_split=can_split,
+                player_hand.strategy_hand,
+                first_turn=player_hand.first_turn and not player_hand.split_hand,
+                can_double=Decision.DOUBLE in available,
+                can_split=Decision.SPLIT in available,
             )
-            if decision is Decision.STAND:
-                return [(bet, player_hand, split_hand)]
-            if decision is Decision.DOUBLE:
-                return play_from(player_hand + draw(), bet * 2, False, split_hand, splits_used)
             if decision is Decision.HIT:
-                return play_from(player_hand + draw(), bet, False, split_hand, splits_used)
-            if decision is Decision.SPLIT:
-                hands = []
-                for card in player_hand.cards:
-                    new_hand = Hand.from_cards((card, draw()))
-                    if rules.one_card_on_split_aces and card == 11:
-                        hands.append((bet, new_hand, True))
-                    else:
-                        hands.extend(play_from(new_hand, bet, False, True, splits_used + 1))
-                return hands
-            if decision is Decision.SURRENDER:
-                return [(bet, Hand.from_cards(()), split_hand)]
-            raise ValueError(f"Unknown decision: {decision}")
+                counts["hits"] += 1
+            elif decision is Decision.STAND:
+                counts["stands"] += 1
+            elif decision is Decision.DOUBLE:
+                counts["doubles"] += 1
+            elif decision is Decision.SPLIT:
+                counts["splits"] += 1
+            game.apply(decision)
 
-        bets_and_hands = play_from(initial_hand, initial_bet, True, False, 0)
+        result = round_state.result
+        if result.dealer_blackjack:
+            counts["dealer_blackjacks"] += 1
+        needs_dealer_hand = any(
+            hand.outcome is not Outcome.SURRENDER
+            and not Hand.from_cards(card.value for card in hand.cards).bust
+            and not (Hand.from_cards(card.value for card in hand.cards).blackjack and not hand.split_hand)
+            for hand in result.hands
+        )
+        if result.dealer_blackjack or needs_dealer_hand:
+            counts["dealer_resolved_rounds"] += 1
+        if result.dealer_bust and needs_dealer_hand:
+            counts["dealer_busts"] += 1
 
-        while dealer_hand.total < 17 or (
-            dealer_hand.total == 17 and dealer_hand.soft and rules.dealer_hits_soft_17
-        ):
-            dealer_hand = dealer_hand + draw()
-
-        for bet, player_hand, split_hand in bets_and_hands:
+        for hand_result in result.hands:
+            bet = hand_result.bet
+            player_hand = Hand.from_cards(card.value for card in hand_result.cards)
             counts["hands"] += 1
             record_bet(bet)
-            if not player_hand.cards:
-                bankroll_value -= bet * 0.5
+            if hand_result.outcome is Outcome.SURRENDER:
                 counts["surrenders"] += 1
-            elif player_hand.blackjack and not split_hand:
+            elif player_hand.blackjack and not hand_result.split_hand:
                 counts["blackjacks"] += 1
-                if dealer_hand.blackjack:
-                    counts["pushes"] += 1
-                else:
-                    bankroll_value += bet * 1.5
-                    counts["wins"] += 1
-            elif player_hand.bust:
-                bankroll_value -= bet
-                counts["losses"] += 1
-            elif dealer_hand.bust:
-                bankroll_value += bet
+            if player_hand.bust:
+                counts["player_busts"] += 1
+            if hand_result.outcome is Outcome.WIN:
                 counts["wins"] += 1
-            elif dealer_hand.total > player_hand.total:
-                bankroll_value -= bet
+            elif hand_result.outcome is Outcome.LOSS:
                 counts["losses"] += 1
-            elif dealer_hand.total < player_hand.total:
-                bankroll_value += bet
-                counts["wins"] += 1
-            else:
+            elif hand_result.outcome is Outcome.PUSH:
                 counts["pushes"] += 1
+            bankroll_value += hand_result.profit
+            record_bankroll()
 
     return SimulationResult(
         profit=bankroll_value - bankroll,
@@ -284,9 +365,10 @@ def run_simulations(
         results.append(result)
         if progress is not None:
             progress(completed, result)
+    profits = [result.profit for result in results]
     return AggregateResult(
         simulations=simulations,
-        average_profit=mean(result.profit for result in results),
+        average_profit=mean(profits),
         average_final_bankroll=mean(result.final_bankroll for result in results),
         rounds=sum(result.rounds for result in results),
         hands=sum(result.hands for result in results),
@@ -298,18 +380,37 @@ def run_simulations(
         total_bet=sum(result.total_bet for result in results),
         min_final_bankroll=min(result.final_bankroll for result in results),
         max_final_bankroll=max(result.final_bankroll for result in results),
-        profit_stddev=pstdev(result.profit for result in results),
+        profit_stddev=pstdev(profits),
         min_bet=min(result.min_bet for result in results),
         max_bet=max(result.max_bet for result in results),
         raised_bets=sum(result.raised_bets for result in results),
         min_count=min(result.min_count for result in results),
         max_count=max(result.max_count for result in results),
+        initial_bet_total=sum(result.initial_bet_total for result in results),
+        min_initial_bet=min(result.min_initial_bet for result in results),
+        max_initial_bet=max(result.max_initial_bet for result in results),
+        count_total=sum(result.count_total for result in results),
+        hits=sum(result.hits for result in results),
+        stands=sum(result.stands for result in results),
+        doubles=sum(result.doubles for result in results),
+        splits=sum(result.splits for result in results),
+        player_busts=sum(result.player_busts for result in results),
+        dealer_busts=sum(result.dealer_busts for result in results),
+        dealer_blackjacks=sum(result.dealer_blackjacks for result in results),
+        dealer_resolved_rounds=sum(result.dealer_resolved_rounds for result in results),
+        min_bankroll=min(result.min_bankroll for result in results),
+        max_drawdown=max(result.max_drawdown for result in results),
+        average_max_drawdown=mean(result.max_drawdown for result in results),
+        profitable_simulations=sum(result.profit > 0 for result in results),
+        losing_simulations=sum(result.profit < 0 for result in results),
+        breakeven_simulations=sum(result.profit == 0 for result in results),
+        profit_p05=percentile(profits, 0.05),
+        profit_median=percentile(profits, 0.5),
+        profit_p95=percentile(profits, 0.95),
     )
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--simulations", type=int, default=10_000)
+def _add_table_options(parser, bankroll):
     parser.add_argument(
         "--strategy",
         choices=[strategy.value for strategy in StrategyType],
@@ -317,15 +418,64 @@ def main(argv=None):
     )
     parser.add_argument("--decks", type=int, default=8)
     parser.add_argument("--penetration", type=float, default=0.25)
-    parser.add_argument("--bankroll", type=float, default=INITIAL_MONEY)
+    parser.add_argument("--bankroll", type=float, default=bankroll)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--surrender", action="store_true")
     parser.add_argument("--no-double-after-split", action="store_true")
     parser.add_argument("--max-splits", type=int, default=3)
     parser.add_argument("--no-resplit-aces", action="store_true")
     parser.add_argument("--allow-more-than-one-card-on-split-aces", action="store_true")
-    parser.add_argument("--tui", action="store_true", help="show live simulation progress")
+
+
+def _add_practice_options(parser):
+    parser.add_argument("--practice", choices=("all", "hard", "soft", "pair", "surrender", "missed"), default="all")
+    feedback = parser.add_mutually_exclusive_group()
+    feedback.add_argument("--require-correction", action="store_true", help="retry incorrect choices before playing")
+    feedback.add_argument("--delayed-feedback", action="store_true", help="reveal mistakes when the round ends")
+
+
+def _parse_cli(argv):
+    if argv and argv[0] in ("train", "simulate"):
+        parser = argparse.ArgumentParser(description="Blackjack simulation and basic-strategy training")
+        commands = parser.add_subparsers(dest="command", required=True)
+        train = commands.add_parser("train", help="practice basic strategy")
+        _add_table_options(train, bankroll=1_000.0)
+        train.add_argument("--bet", type=float, default=25.0, help="wager per training round (default: $25)")
+        _add_practice_options(train)
+        simulate = commands.add_parser("simulate", help="run Monte Carlo simulations")
+        _add_table_options(simulate, bankroll=INITIAL_MONEY)
+        simulate.add_argument("--simulations", type=int, default=10_000)
+        simulate.add_argument("--tui", action="store_true", help="show live simulation progress")
+    else:
+        parser = argparse.ArgumentParser(
+            description="Blackjack simulation and basic-strategy training",
+            epilog="Commands: train (interactive trainer), simulate (batch simulation). "
+                   "Without a command, legacy simulation options and --train still work.",
+        )
+        _add_table_options(parser, bankroll=INITIAL_MONEY)
+        parser.add_argument("--simulations", type=int, default=10_000)
+        parser.add_argument("--tui", action="store_true", help="show live simulation progress")
+        parser.add_argument("--train", action="store_true", help="start the interactive strategy trainer")
+        parser.add_argument("--bet", type=float, help="wager when using --train (default: $25)")
+        _add_practice_options(parser)
+
     args = parser.parse_args(argv)
+    if getattr(args, "command", None) == "train" or getattr(args, "train", False):
+        if args.bet is None:
+            args.bet = 25.0
+        if args.bet <= 0:
+            parser.error("--bet must be positive")
+        if args.practice == "surrender" and not args.surrender:
+            parser.error("--practice surrender requires --surrender")
+    elif getattr(args, "bet", None) is not None:
+        parser.error("--bet requires --train or the train command")
+    elif getattr(args, "practice", "all") != "all" or getattr(args, "require_correction", False) or getattr(args, "delayed_feedback", False):
+        parser.error("practice options require --train or the train command")
+    return args
+
+
+def main(argv=None):
+    args = _parse_cli(sys.argv[1:] if argv is None else argv)
 
     strategy_type = StrategyType(args.strategy)
     rules = Rules(
@@ -338,13 +488,22 @@ def main(argv=None):
         resplit_aces=not args.no_resplit_aces,
         one_card_on_split_aces=not args.allow_more_than_one_card_on_split_aces,
     )
+    if getattr(args, "command", None) == "train" or getattr(args, "train", False):
+        from .trainer_tui import run_trainer
+
+        run_trainer(
+            strategy_type, rules, args.bankroll, args.seed, bet=args.bet,
+            practice=args.practice, require_correction=args.require_correction,
+            delayed_feedback=args.delayed_feedback,
+        )
+        return
     started = time.perf_counter()
     progress = None
     display = None
     if args.tui:
         from .tui import ProgressDisplay
 
-        display = ProgressDisplay(args.simulations, args.bankroll)
+        display = ProgressDisplay(args.simulations, args.bankroll, strategy=strategy_type.value)
         progress = display.update
     result = run_simulations(
         args.simulations, strategy_type, rules, args.bankroll, args.seed, progress
@@ -361,8 +520,13 @@ def main(argv=None):
     print(f"Profit standard deviation: ${result.profit_stddev:,.2f}")
     print(f"Hands: {result.hands:,}  Wins: {result.wins:,}  Losses: {result.losses:,}  Pushes: {result.pushes:,}")
     print(f"Surrenders: {result.surrenders:,}  Blackjacks: {result.blackjacks:,}")
-    print(f"Win rate: {result.win_rate:.2%}  Loss rate: {result.loss_rate:.2%}  Push rate: {result.push_rate:.2%}")
-    print(f"Average bet: ${result.average_bet:,.2f}")
+    print(f"Win rate: {result.win_rate:.2%}  Loss rate: {result.loss_rate:.2%}  Push rate: {result.push_rate:.2%}  Surrender rate: {result.surrender_rate:.2%}")
+    print(f"Player bust rate: {result.player_bust_rate:.2%}  Dealer bust rate: {result.dealer_bust_rate:.2%}")
+    print(f"Average initial bet: ${result.average_initial_bet:,.2f}  Average wager/hand: ${result.average_bet:,.2f}")
+    print(f"Return on wager: {result.return_on_wager:+.2%}  Profit/100 hands: ${result.profit_per_100_hands:,.2f}")
+    print(f"Profit p05/p50/p95: ${result.profit_p05:,.2f} / ${result.profit_median:,.2f} / ${result.profit_p95:,.2f}")
+    print(f"Profitable shoes: {result.profitable_simulations / result.simulations:.2%}  Max drawdown: ${result.max_drawdown:,.2f}")
+    print(f"Actions: {result.hits:,} hits  {result.stands:,} stands  {result.doubles:,} doubles  {result.splits:,} splits")
     print(f"Finished in {elapsed_ms}ms")
 
 

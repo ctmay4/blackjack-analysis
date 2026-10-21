@@ -7,6 +7,7 @@ name = "blackjack-analysis"
 version = "0.1.0"
 description = "Simulate blackjack strategies"
 requires-python = ">=3.10"
+dependencies = ["textual>=0.47"]
 
 [tool.setuptools.packages.find]
 where = ["."]

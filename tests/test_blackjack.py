@@ -1,6 +1,6 @@
 import unittest
 
-from blackjack_analysis.blackjack import generate_deck, get_bet_size, true_count
+from blackjack_analysis.blackjack import generate_deck, get_bet_size, percentile, true_count
 
 
 class BlackjackTests(unittest.TestCase):
@@ -17,6 +17,10 @@ class BlackjackTests(unittest.TestCase):
         self.assertEqual(get_bet_size(1, 100_000), 25)
         self.assertEqual(get_bet_size(2, 100_000), 100)
         self.assertEqual(get_bet_size(12, 100_000), 1000)
+
+    def test_percentile_interpolates(self):
+        self.assertEqual(percentile([0, 10, 20], 0.05), 1.0)
+        self.assertEqual(percentile([0, 10, 20], 0.5), 10)
 
 
 if __name__ == "__main__":
