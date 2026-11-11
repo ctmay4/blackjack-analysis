@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties, FormEvent, ReactNode } from "react";
-import { ApiError, defaults, request } from "./api";
-import type { Action, CardData, ChartSection, Config, Snapshot } from "./api";
+import { defaults } from "./engine/session-config";
+import type { Action, CardData } from "./engine/types";
+import type { ChartSection, Config, Snapshot } from "./engine/session-types";
+import { SessionError, sessionController } from "./session-controller";
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
@@ -322,9 +330,9 @@ function Settings({
         </button>
       </fieldset>
       <p className="form-note">
-        Local, in-memory practice. Refreshing keeps your session; restarting the
-        server or 12 hours of inactivity clears it. Wagers aren’t capped by your
-        virtual bankroll.
+        Saved in this browser. Refreshing resumes your hand; ending the session
+        or clearing site data removes it. Wagers aren’t capped by your virtual
+        bankroll.
       </p>
     </form>
   );
@@ -422,24 +430,42 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
   const [error, setError] = useState("");
+  const [recoverable, setRecoverable] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [chart, setChart] = useState<ChartSection[] | null>(null);
   const [chartError, setChartError] = useState("");
   const actionsRef = useRef<HTMLDivElement>(null);
+  const pendingActionFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (!pendingActionFocus.current || busy) return;
+    pendingActionFocus.current = false;
+    actionsRef.current
+      ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+      ?.focus({ preventScroll: true });
+  }, [state, busy]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setState(await request<Snapshot>("session"));
+      const latest = await sessionController.load();
+      setState(latest);
+      if (!latest) setOverlay(null);
       setError("");
+      setRecoverable(false);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 404) setState(null);
-      else
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Could not reach the local server.",
-        );
+      const damaged =
+        err instanceof SessionError &&
+        ["corrupt", "unsupported"].includes(err.code);
+      setRecoverable(damaged);
+      if (damaged) {
+        setState(null);
+        setOverlay(null);
+      }
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not load the saved session.",
+      );
     } finally {
       setLoading(false);
     }
@@ -449,37 +475,43 @@ export default function App() {
   }, [load]);
 
   const mutate = useCallback(
-    async (path: string, method: string, body: unknown, close = false) => {
+    async (operation: () => Promise<Snapshot | null>, close = false) => {
       if (busyRef.current) return;
       busyRef.current = true;
       setBusy(true);
       setError("");
       try {
-        setState(await request<Snapshot | null>(path, method, body));
+        setState(await operation());
+        setRecoverable(false);
         if (close) {
           setOverlay(null);
           setChart(null);
         }
       } catch (err) {
         const message =
-          err instanceof Error
-            ? err.message
-            : "Could not reach the local server.";
-        if (err instanceof ApiError && err.status === 404) {
+          err instanceof Error ? err.message : "Could not save your choice.";
+        setRecoverable(
+          err instanceof SessionError &&
+            ["corrupt", "unsupported"].includes(err.code),
+        );
+        if (err instanceof SessionError && err.code === "missing") {
           setState(null);
           setOverlay(null);
         }
-        // Never replay an uncertain action. Reconcile server state instead.
+        // Never replay an uncertain choice. Reconcile committed browser state.
         else {
           try {
-            setState(await request<Snapshot>("session"));
+            const latest = await sessionController.load();
+            setState(latest);
+            if (!latest) setOverlay(null);
           } catch (refreshError) {
             if (
-              refreshError instanceof ApiError &&
-              refreshError.status === 404
+              refreshError instanceof SessionError &&
+              ["corrupt", "unsupported"].includes(refreshError.code)
             ) {
               setState(null);
               setOverlay(null);
+              setRecoverable(true);
             }
           }
         }
@@ -501,19 +533,14 @@ export default function App() {
           : !state.available_actions.includes(action)
       )
         return;
-      await mutate("action", "POST", { revision: state.revision, action });
-      requestAnimationFrame(() =>
-        actionsRef.current
-          ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
-          ?.focus({ preventScroll: true }),
-      );
+      pendingActionFocus.current = true;
+      await mutate(() => sessionController.choose(state, action));
     },
     [state, mutate],
   );
 
   const endSession = useCallback(() => {
-    if (state)
-      void mutate("session", "DELETE", { revision: state.revision }, true);
+    if (state) void mutate(() => sessionController.end(state), true);
   }, [state, mutate]);
 
   useEffect(() => {
@@ -573,10 +600,12 @@ export default function App() {
   }, [overlay, state, perform, endSession]);
 
   useEffect(() => {
-    if (overlay !== "chart") return;
+    if (overlay !== "chart" || !state) return;
     let cancelled = false;
     setChartError("");
-    request<ChartSection[]>("chart")
+    setChart(null);
+    sessionController
+      .chart(state)
       .then((data) => {
         if (!cancelled) setChart(data);
       })
@@ -586,16 +615,17 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [overlay]);
+  }, [overlay, state]);
 
   const complete = state?.status === "complete";
   const stats = state?.stats;
   const net = state ? state.bankroll - state.config.bankroll : 0;
   const saveSettings = (config: Config) =>
     void mutate(
-      "session",
-      state ? "PUT" : "POST",
-      state ? { revision: state.revision, config } : config,
+      () =>
+        state
+          ? sessionController.reset(state, config)
+          : sessionController.start(config),
       true,
     );
   const open = (value: Overlay) => {
@@ -627,7 +657,11 @@ export default function App() {
   return (
     <div className={`app-shell live-app${state ? " is-playing" : ""}`}>
       <header className="app-header">
-        <a className="brand" href="/" aria-label="Blackjack Studio home">
+        <a
+          className="brand"
+          href={import.meta.env.BASE_URL}
+          aria-label="Blackjack Studio home"
+        >
           <span className="brand-mark">♠</span>
           <span>
             blackjack<span className="brand-light"> / studio</span>
@@ -636,7 +670,7 @@ export default function App() {
         </a>
         <nav aria-label="Tools">
           <span className="local-label">
-            <span className="status-dot" /> Local session
+            <span className="status-dot" /> Browser-only
           </span>
           <button
             className="icon-button"
@@ -666,6 +700,25 @@ export default function App() {
             >
               Reload state ↗
             </button>
+            {recoverable && (
+              <button
+                className="text-button"
+                disabled={busy || loading}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Discard the saved session? Its hands and statistics cannot be recovered.",
+                    )
+                  )
+                    void mutate(
+                      () => sessionController.discardSavedSession(),
+                      true,
+                    );
+                }}
+              >
+                Discard saved session
+              </button>
+            )}
           </div>
         )}
         {loading ? (
@@ -1110,9 +1163,16 @@ export default function App() {
                 hits and split restrictions can change the best move.
               </p>
               {chartError ? (
-                <p className="form-warning" role="alert">
-                  {chartError}
-                </p>
+                <div className="form-warning" role="alert">
+                  <p>{chartError}</p>
+                  <button
+                    className="button secondary"
+                    disabled={loading || busy}
+                    onClick={() => void load()}
+                  >
+                    Reload latest session
+                  </button>
+                </div>
               ) : !chart ? (
                 <p role="status">Loading chart…</p>
               ) : (

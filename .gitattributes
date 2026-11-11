@@ -1,0 +1,2 @@
+# Frozen migration fixtures have byte-level integrity checks on every platform.
+frontend/src/engine/fixtures/*.json text eol=lf

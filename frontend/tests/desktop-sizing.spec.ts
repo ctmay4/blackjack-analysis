@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers";
 
 for (const width of [1024, 1440, 1920, 2560]) {
   test(`readable desktop cards and type at ${width}px`, async ({ page }) => {

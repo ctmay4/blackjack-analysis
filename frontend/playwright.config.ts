@@ -13,7 +13,7 @@ export default defineConfig({
       : {},
   },
   webServer: {
-    command: `cd .. && ${process.env.BLACKJACK_TEST_PYTHON || "uv run --extra web python"} frontend/tests/server.py`,
+    command: "npm run preview -- --port 8765 --strictPort",
     url: "http://127.0.0.1:8765",
     reuseExistingServer: false,
   },

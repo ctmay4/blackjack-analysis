@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, readSaved, writeSaved } from "./helpers";
+import type { CardData, CardRank } from "../src/engine/types";
 import type { Page } from "@playwright/test";
 
 async function expectVisibleGameplay(page: Page) {
@@ -105,14 +106,39 @@ test("five-card hands keep full-size cards and readable rank corners", async ({
   await page.getByRole("button", { name: "Start practice" }).click();
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
   await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
-  // A presentation fixture based on a real snapshot, not a fake production API.
-  const state = await (await page.request.get("/api/session")).json();
-  const card = (value: number) => ({ rank: String(value), suit: "♠", value });
-  state.dealer_cards = [2, 2, 3, 4, 10].map(card);
-  state.dealer_total = 21;
-  state.hands[0].cards = [2, 2, 3, 4, 5].map(card);
-  state.hands[0].total = 16;
-  await page.route("**/api/session", (route) => route.fulfill({ json: state }));
+  // A validated storage fixture for layout only; the UI still derives its own
+  // masked snapshot. No production fixture endpoint or window hook is needed.
+  const saved = await readSaved(page);
+  if (!saved || saved.trainer.round.status !== "complete")
+    throw new Error("Expected a completed checkpoint");
+  const round = saved.trainer.round,
+    oldCount = round.dealerCards.length + round.hands[0].cards.length;
+  const card = (value: number): CardData => ({
+    rank: String(value) as CardRank,
+    suit: "♠",
+    value,
+  });
+  round.dealerCards = [2, 2, 3, 4, 10].map(card);
+  round.result.dealerCards = structuredClone(round.dealerCards);
+  round.result.dealerBust = false;
+  round.result.dealerBlackjack = false;
+  round.hands[0].cards = [2, 2, 3, 4, 5].map(card);
+  round.result.hands[0].cards = structuredClone(round.hands[0].cards);
+  round.result.hands[0].outcome = "loss";
+  round.result.hands[0].profit = -round.hands[0].bet;
+  round.result.profit = -round.hands[0].bet;
+  saved.trainer.bankroll = saved.trainer.config.bankroll + round.result.profit;
+  Object.assign(saved.trainer.stats, {
+    wins: 0,
+    losses: 1,
+    pushes: 0,
+    surrenders: 0,
+    playerBlackjacks: 0,
+    dealerBlackjacks: 0,
+    playerBusts: 0,
+  });
+  saved.trainer.shoe.splice(0, 10 - oldCount);
+  await writeSaved(page, saved);
   await page.reload();
   await expect(page.locator(".player-hand .card")).toHaveCount(5);
   await expectVisibleGameplay(page);

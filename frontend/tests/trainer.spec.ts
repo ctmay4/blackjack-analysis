@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, readSaved } from "./helpers";
 import type { Page } from "@playwright/test";
 
 async function start(page: Page) {
@@ -111,40 +111,82 @@ test("mobile pair practice and splits fit without horizontal page overflow", asy
   });
 });
 
-test("stale state is reconciled without replaying an action", async ({
+test("stale tabs reconcile without replaying an action", async ({
+  page,
+  context,
+}) => {
+  await start(page);
+  const other = await context.newPage();
+  await other.goto("/");
+  await other.getByRole("button", { name: "Stand S", exact: true }).click();
+  await expect(other.getByRole("button", { name: "Next hand" })).toBeVisible();
+  await page.getByRole("button", { name: "Stand S", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("changed in another tab");
+  await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
+  await expect(page.locator(".metric-note")).toContainText("1 of 1");
+  await other.close();
+});
+
+test("a stale chart reloads the latest session rules instead of showing mismatched guidance", async ({
+  page,
+  context,
+}) => {
+  await start(page);
+  const other = await context.newPage();
+  await other.goto("/");
+  await other.getByRole("button", { name: "Open session settings" }).click();
+  await other.getByText("Table rules", { exact: true }).click();
+  await other.getByLabel("Dealer behavior").selectOption("true");
+  await other
+    .getByRole("button", { name: "Start new session", exact: true })
+    .click();
+  await other.getByRole("button", { name: "Confirm new session" }).click();
+  await expect(other.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Open strategy chart" }).click();
+  await expect(page.getByRole("alert")).toContainText("changed in another tab");
+  await expect(page.getByRole("table")).toHaveCount(0);
+  await page.getByRole("button", { name: "Reload latest session" }).click();
+  await expect(page.getByRole("table")).toHaveCount(3);
+  await expect(page.locator(".rules-summary")).toContainText("Hit soft 17");
+  await other.close();
+});
+
+test("failed saves leave the previous hand and score intact", async ({
   page,
 }) => {
   await start(page);
-  await page.evaluate(async () => {
-    await fetch("/api/action", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Trainer-Request": "1" },
-      body: JSON.stringify({ revision: 0, action: "stand" }),
+  const before = await readSaved(page);
+  await page.evaluate(() => {
+    Object.defineProperty(IDBObjectStore.prototype, "put", {
+      value: () => {
+        throw new DOMException("Quota exceeded", "QuotaExceededError");
+      },
     });
   });
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "changed in another request",
-  );
-  await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
-  await expect(page.locator(".metric-note")).toContainText("1 of 1");
+  await expect(page.getByRole("alert")).toContainText("storage");
+  await expect(page.locator(".metric-note")).toContainText("0 of 0");
+  await expect(
+    page.getByRole("button", { name: "Stand S", exact: true }),
+  ).toBeVisible();
+  expect(await readSaved(page)).toEqual(before);
 });
 
-test("a lost response is reconciled without automatically replaying the choice", async ({
+test("gameplay and charts work offline without API requests", async ({
   page,
+  context,
 }) => {
-  await start(page);
-  let mutations = 0;
-  await page.route("**/api/action", async (route) => {
-    mutations++;
-    await route.fetch(); // The real engine applies the choice, but the browser loses the response.
-    await route.abort("failed");
+  const apiRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/")) apiRequests.push(request.url());
   });
+  await start(page);
+  await context.setOffline(true);
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
-  await expect(page.getByRole("alert")).toBeVisible();
   await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
-  await expect(page.locator(".metric-note")).toContainText("1 of 1");
-  expect(mutations).toBe(1);
+  await page.getByRole("button", { name: "Open strategy chart" }).click();
+  await expect(page.getByRole("table")).toHaveCount(3);
+  expect(apiRequests).toEqual([]);
 });
 
 test("delayed feedback, surrender practice, and desktop layout", async ({
@@ -159,6 +201,13 @@ test("delayed feedback, surrender practice, and desktop layout", async ({
   await expect(page.getByRole("status")).toContainText(
     "Feedback after the round",
   );
+  await expect(page.locator(".metric-note")).toContainText("0 of 0");
+  const pending = await readSaved(page);
+  await page.reload();
+  await expect(page.getByRole("status")).toContainText(
+    "Feedback after the round",
+  );
+  expect(await readSaved(page)).toEqual(pending);
   await expect(page.locator(".metric-note")).toContainText("0 of 0");
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Round complete");

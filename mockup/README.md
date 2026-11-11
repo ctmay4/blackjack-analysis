@@ -1,16 +1,10 @@
 # Web trainer design preview
 
-A standalone, responsive visual mockup. No dependencies, API, storage, or real game logic. The Python trainer is unchanged.
+The archived, approved visual mockup. No dependencies, API, storage, or real game logic. The live React/TypeScript trainer is in `frontend/`; see the [root README](../README.md).
 
 ## Open
 
-Open `index.html` directly in a modern browser, or from the repository root run:
-
-```sh
-python3 -m http.server 8000 --bind 127.0.0.1 --directory mockup
-```
-
-Visit http://localhost:8000.
+Open `mockup/index.html` directly in a modern browser. No server or Python installation is needed for this static reference.
 
 ## Explore
 
@@ -22,7 +16,7 @@ Visit http://localhost:8000.
 
 Fonts load from Google Fonts when online; local system-font fallbacks work offline. All other assets are local. Native dialogs require a modern browser.
 
-## Feedback to collect
+## Original design review checklist
 
 - Does the dark slate / mint direction feel right?
 - Are cards, hand totals, and the active split hand easy to read?
@@ -30,4 +24,4 @@ Fonts load from Google Fonts when online; local system-font fallbacks work offli
 - Is the sidebar useful, or too busy?
 - Are mobile actions comfortable and secondary tools easy to find?
 
-Mobile currently stacks statistics below the table. A compact above-table stats strip is a possible next iteration after reviewing the first layout.
+This original mockup stacks mobile statistics below the table. The live application has since added an above-table stats strip and height-aware desktop layouts.

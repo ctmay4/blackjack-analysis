@@ -1,15 +1,20 @@
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-.pytest_cache/
-build/
-dist/
-*.egg-info/
-target/
-.idea/
-.vscode/
+# Node builds and browser-test output
 node_modules/
-blackjack_analysis/web_static/
+dist/
 frontend/test-results/
 frontend/playwright-report/
+
+# Editor/local build artifacts
+.idea/
+.vscode/
+build/
+target/
+
+# Retired Python environments/caches may remain in existing local checkouts.
+# They are not application dependencies and must not be checked back in.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/

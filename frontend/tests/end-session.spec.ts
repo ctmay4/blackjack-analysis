@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers";
 
 for (const confirmWith of ["keyboard", "button"] as const) {
   test(`end session using ${confirmWith}, cancel safely, and start fresh`, async ({

@@ -1,219 +1,138 @@
-# blackjack-analysis
+# Blackjack Studio
 
-Python simulation for comparing blackjack basic strategies.
+A browser-only blackjack basic-strategy trainer built with **React, TypeScript,
+and Vite**. Gameplay, teaching, charts, statistics, and session saving all run on
+your device. **No Python runtime, API server, account, or backend hosting is
+required to use or build the app.**
 
-## Basic-strategy trainer
+The approved slate/mint interface includes responsive desktop/mobile layouts,
+large cards and text, keyboard/touch controls, practice filters, feedback modes,
+and session summaries. Wide, shorter screens use side-by-side hands to keep
+cards, feedback, and actions visible together.
 
-Install dependencies and launch the interactive trainer with `uv`:
+## Run locally
 
-```sh
-uv sync
-uv run python -m blackjack_analysis train
-```
-
-Alternatively, environments with `pip` can use `python3 -m pip install -e .`
-followed by `python3 -m blackjack_analysis train`.
-
-Training starts with a $1,000 bankroll and a $25 wager per round. Set these
-independently with `train --bankroll 2500 --bet 50`; use `train --help` for
-the available table rules. The older `--train` form still works and retains
-its original $100,000 default bankroll.
-
-The trainer uses `h` to hit, `s` to stand, `d` to double, `p` to split,
-`r` to surrender when enabled, `Enter` for the next round, and `q` to quit.
-Letter shortcuts also accept uppercase input.
-It immediately identifies non-basic-strategy choices, plays the selected move,
-and keeps decision accuracy, streak, outcome, and bankroll statistics. “Ideal”
-means the selected basic-strategy table; count-based deviations are not modeled.
-
-Press `?` for help, `t` for a strategy chart based on the selected rules, and
-`v` for an accuracy breakdown and frequently missed situations. Press `q` to
-see the end-of-session summary; `Esc` returns to practice or `q` again quits.
-The chart shows two-card decisions; subsequent hits can change the best move.
-
-Target opening hands with `--practice hard|soft|pair|surrender|missed` (default:
-`all`). Surrender practice requires `--surrender`. Missed-situation practice
-starts with ordinary hands until you miss an opening decision, then targets
-matching opening situations. Skipped deals do not affect your bankroll or statistics.
-Use `--require-correction` to retry a wrong choice before playing it, or
-`--delayed-feedback` to hide accuracy and recommendations until the round ends.
-These two feedback modes cannot be combined. For example:
+Node.js 20.19+ or 22.12+ is recommended:
 
 ```sh
-uv run python -m blackjack_analysis train --practice soft --delayed-feedback
-uv run python -m blackjack_analysis train --practice surrender --surrender --require-correction
-```
-
-## Browser trainer
-
-The local web trainer uses the same Python game and teaching engine, with a
-responsive React/TypeScript interface based on the approved `mockup/` design.
-Install the optional web dependencies and build the frontend (Node.js 20.19+ or
-22.12+ recommended):
-
-```sh
-uv sync --extra web
 npm ci --prefix frontend
+npm run dev --prefix frontend
+```
+
+Open the Vite URL, normally **http://127.0.0.1:5173**.
+
+To try the production static build:
+
+```sh
 npm run build --prefix frontend
-uv run --extra web python -m blackjack_analysis web
+npm run preview --prefix frontend
 ```
 
-Open **http://127.0.0.1:8000**. Use `web --port 8080` to choose another port.
-For pip installations, use `python3 -m pip install -e '.[web]'`, build the
-frontend as above, and run `python3 -m blackjack_analysis web`.
-Build before packaging a wheel to include the generated frontend assets.
+Open **http://127.0.0.1:4173**. The deployable site is `frontend/dist/`.
+See [`frontend/README.md`](frontend/README.md) for architecture and testing.
 
-Choose your practice focus, feedback mode, bankroll, wager, and table rules on
-the setup screen. Play with buttons or the terminal trainer's action shortcuts.
-Open the strategy chart with `T`, statistics with `V`, the session summary with
-`Q`, or help with `?`. In the summary, press `Q` again or click **End session**
-to clear the session and return to setup; `Esc` cancels. Settings also require
-confirmation before replacing a session.
+## Controls and practice
 
-Sessions live in memory and resume on refresh using a private browser cookie.
-They are cleared by server restarts or 12 hours of inactivity. No accounts,
-durable history, or real money are involved. As in the terminal trainer, the
-virtual bankroll does not limit legal wagers. The server binds only to
-`127.0.0.1`; public hosting is not supported in this first pass.
+- **H** hit, **S** stand, **D** double, **P** split, **R** surrender when enabled.
+- **Enter** next hand; **T** strategy chart; **V** statistics; **?** help.
+- **Q** summary, then **Q** again or **End session** to clear the active session.
+  **Esc** cancels and returns to practice.
+- Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
+- Choose immediate feedback, require-correction, or delayed feedback.
+- Changing settings requires confirmation before replacing the current session.
 
-See [`frontend/README.md`](frontend/README.md) for development, API details,
-and browser tests. Google Fonts are optional; system fonts work offline.
+Virtual money only. Bankroll does not restrict legal wagers. “Ideal” means the
+selected basic-strategy table; count-based deviations are not mixed into it.
 
-## Run simulations
+## Session saving and privacy
 
-After installation, run the simulator with:
+The active session is saved in **IndexedDB**, including the shoe, current hands,
+statistics, pending delayed feedback, and random-generator state. Refresh resumes
+that exact session without re-scoring choices or changing future shuffles.
+
+- Data stays in this browser/profile and site origin. Different local ports,
+  hostnames, or the future Pages site have separate saves.
+- Tabs share the active session. Atomic storage transactions, session IDs, and
+  revision checks prevent stale/double choices from being applied twice. Reload
+  or the next action reconciles changes from another tab; there is no push sync.
+- Ending a session clears its active save. History across ended sessions is not
+  implemented yet. Previous Python-server sessions are not imported.
+- Clearing site data, browser eviction, or leaving private browsing can remove
+  saves. No cloud backup or cross-device synchronization is provided yet.
+- Storage failures are reported rather than silently pretending progress was
+  saved. Corrupt/future-version data is preserved until you explicitly discard it.
+- Once loaded, gameplay/charts need no connection. Opening/reloading the app
+  offline is not guaranteed yet; installable offline/PWA support is future work.
+
+The public UI snapshot masks the dealer hole card and pending teaching hints.
+The saved state contains the full local game: this is a practice tool, not a
+secure gambling or anti-cheating system. Google Fonts optionally load online;
+system-font fallbacks work without them. No analytics are included.
+
+## GitHub Pages
+
+The app is a static site and uses relative asset paths, including home navigation,
+so it works under a repository URL such as:
+
+`https://ctmay4.github.io/blackjack-analysis/`
+
+Deployment automation is in `.github/workflows/pages.yml`. To publish:
+
+1. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
+2. Push the changes to `master`, or manually run the Pages workflow on `master`.
+3. The workflow installs Node dependencies, checks formatting/unit tests, runs
+   Chromium tests against the static build, and deploys only `frontend/dist/`.
+
+The site becomes available after a successful **Deploy browser trainer to GitHub
+Pages** workflow run. Check the repository's **Actions** tab for deployment status.
+No Python, API URL, deployment secrets, or external backend is used by the site.
+
+## Tests
 
 ```sh
-python3 -m blackjack_analysis simulate --simulations 10000 --strategy stand_soft_17 --seed 42
+npm run test:unit --prefix frontend
+cd frontend
+npx playwright install chromium
+npm test
 ```
 
-Add `--tui` for a live terminal dashboard with progress and outcome counts:
+`npm test` builds the app, starts a local static preview server, and runs browser
+tests. Neither test suite requires Python. The unit suite includes comparisons
+against **175 Python game traces, 68,480 strategy decisions, and 93 trainer traces
+(618 frames)**. Reference trainer states are also saved/restored at each step.
+See [engine migration notes](frontend/src/engine/README.md) for coverage and the
+intentional split-ace corrections.
 
-```sh
-python3 -m blackjack_analysis simulate --simulations 10000 --seed 42 --tui
-```
+## Migration status
 
-The existing command without `simulate` remains supported. Simulation defaults
-to 10,000 shoes and a $100,000 starting bankroll. Useful options include:
+1. **Game and strategy port — complete:** pure TypeScript rules/settlement,
+   deterministic shoes, validation, original tables, recommendations, and tests.
+2. **Teaching/session port — complete:** accuracy, streaks, categories, mistakes,
+   bankroll, practice filters, feedback modes, masked snapshots, and charts.
+3. **Browser-only cutover — complete:** typed local controller replaces HTTP;
+   versioned validated saves restore sessions/RNG; browser tests use no Python.
+4. **Static hosting — prepared:** standalone Vite output, repository-subpath
+   coverage, and Pages workflow. Enable Pages and publish to finish this milestone.
+5. **Legacy cleanup — complete:** Python/FastAPI, terminal UI/CLI, Python tests,
+   packaging/lockfile, and temporary oracle generators have been removed.
+   Application development, tests, CI, and deployment are now Node-only.
 
-- `--strategy stand_soft_17|hit_soft_17`
-- `--decks N`
-- `--penetration FRACTION` (the shoe is reshuffled after this fraction remains)
-- `--bankroll AMOUNT`
-- `--seed N`
-- `--surrender`
-- `--no-double-after-split`
-- `--max-splits N`
-- `--no-resplit-aces`
-- `--allow-more-than-one-card-on-split-aces`
-- `--tui`
-- `train --bet AMOUNT` (fixed wager for each training round)
+TypeScript is the sole application implementation. Frozen JSON fixtures retain
+independent migration evidence, with provenance and integrity checks documented
+in [`frontend/src/engine/fixtures/README.md`](frontend/src/engine/fixtures/README.md).
+The retired source remains in Git history, not as a second maintained engine.
+The original visual mockup remains in `mockup/`.
 
-The final output includes average profit, average and range of final bankrolls,
-profit distribution percentiles, standard deviation, wins, losses, pushes,
-surrenders, blackjacks, bust rates, average initial and resolved-hand wagers,
-return on wager, drawdown, action counts, and elapsed time. The TUI additionally
-shows live confidence intervals, ETA, betting/counting ranges, profitable-shoe
-rate, normalized profit, risk metrics, and a fixed-milestone convergence
-sparkline.
+## Next milestones
 
-## Rules modeled
+- IndexedDB history across ended sessions, cumulative stats, recent-hand review,
+  cross-session mistake drills, export/import backups, and JSON/CSV exports.
+- Optional offline/PWA support, animations, and genuine historical charts.
+- Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
+  and expected-value exercises. Browser simulations, if retained, use Web Workers.
+- More browser/device/accessibility coverage, edge cases, benchmarks, screenshots,
+  and an initial release.
 
-- Eight decks by default, with Hi-Lo-style card counting and bets from $25 to
-  $1,000.
-- Dealer stands on soft 17 for `stand_soft_17` and hits on soft 17 for
-  `hit_soft_17`.
-- Blackjack pays 3:2 and pushes against a dealer blackjack.
-- Surrender, double-after-split, split limits, re-splitting aces, and
-  one-card split aces are configurable.
-- A split 21 is a regular 21, not a natural blackjack.
-
-## Test
-
-```sh
-uv run python -m unittest discover -s tests -v
-```
-
-The strategy files in `blackjack_analysis/resources/` contain the
-split/soft/hard lookup tables. Their dealer columns are 2 through ace, where
-ace is represented by 11.
-
-## Roadmap
-
-### 1. Shared blackjack engine — complete
-
-- Physical cards with ranks and suits
-- Seedable multi-deck shoe and deterministic test shoes
-- Step-driven dealer, player, and split-hand state
-- Hit, stand, double, split, and surrender
-- Natural blackjack, settlement, H17/S17, and configurable table rules
-
-### 2. Simulator migration — complete
-
-- Batch simulation and training use the same game engine
-- Existing simulation APIs, statistics, seeds, and progress dashboard remain supported
-- Doubling correctly draws exactly one card and ends the hand
-
-### 3. Teaching and statistics layer — complete
-
-- Compare each legal choice with the configured basic-strategy table
-- Explain the recommendation and still execute an incorrect legal choice
-- Reject illegal actions without affecting accuracy
-- Track accuracy, streaks, hand categories, mistakes, outcomes, and bankroll
-- Produce JSON-friendly session snapshots for other frontends
-
-### 4. Interactive TUI — complete
-
-- Colored Unicode cards and a hidden dealer hole card
-- Active split-hand indication and responsive narrow-terminal layout
-- Immediate feedback and running session statistics
-- Single-key controls for every action
-
-### 5. CLI restructuring — complete
-
-- Add explicit `train` and `simulate` subcommands
-- Preserve current invocations for backward compatibility
-- Give training and simulation separate defaults
-- Add configurable training wagers and command-level tests
-
-### 6. Trainer usability — complete
-
-- Add a help screen, strategy-chart overlay, and end-of-session summary
-- Show accuracy breakdowns and frequently missed situations
-- Add optional require-correction and delayed-feedback modes
-- Add practice filters for hard hands, soft hands, pairs, surrender, and missed situations
-
-### 7. Persistence and review
-
-- Store training history locally using versioned JSON or SQLite data
-- Resume cumulative statistics and review recent hands
-- Generate drills from frequently missed situations
-- Export session results as JSON or CSV
-
-### 8. Web frontend — first pass complete
-
-- Reuse `TrainerSession`; no blackjack rules duplicated in JavaScript
-- Local FastAPI HTTP API with private sessions and revision-checked actions
-- Responsive React/TypeScript interface with keyboard and touch controls
-- Settings, rule-based strategy charts, session statistics, and summary overlays
-- Automated API and Chromium browser coverage, including mobile layouts
-- Optional future polish: animations, historical trend charts, and additional browser testing
-
-### 9. Advanced training modes
-
-- Running-count and true-count drills
-- Bet-sizing practice
-- Count-based strategy deviations
-- Timed exercises, difficulty progression, and casino-rule presets
-- Expected-value comparisons between actions
-
-These modes should remain separate from basic strategy so that “ideal” always
-has an unambiguous meaning.
-
-### 10. Quality and release
-
-- Benchmark and optimize the shared engine
-- Expand split, resplit, and shoe-exhaustion edge-case coverage
-- Test terminal behavior on Linux, macOS, and Windows
-- Add formatting, linting, continuous integration, and packaged console commands
-- Add screenshots and publish an initial release
+Strategy tables target multi-deck play; a deck setting does not imply a dedicated
+single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural. H17/S17,
+surrender, DAS, split limits, re-splitting aces, and one-card split aces are configurable.

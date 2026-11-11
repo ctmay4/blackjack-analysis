@@ -1,0 +1,2 @@
+# Frozen migration baselines; provenance is documented in fixtures/README.md.
+src/engine/fixtures/*.json
