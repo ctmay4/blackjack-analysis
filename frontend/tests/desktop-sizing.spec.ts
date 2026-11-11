@@ -11,12 +11,12 @@ for (const width of [1024, 1440, 1920, 2560]) {
         parseFloat(
           getComputedStyle(document.querySelector(selector)!).fontSize,
         );
-      const card = document
-        .querySelector(".player-hand .card")!
-        .getBoundingClientRect();
+      // Measure layout, not the animated/transformed visual rectangle, whose
+      // floating-point edges can subtract to slightly less than 148px.
+      const card = document.querySelector<HTMLElement>(".player-hand .card")!;
       return {
-        cardWidth: card.width,
-        cardHeight: card.height,
+        cardWidth: card.offsetWidth,
+        cardHeight: card.offsetHeight,
         feedback: fontSize(".feedback p"),
         action: fontSize(".action-button"),
         metric: fontSize(".metric-label"),

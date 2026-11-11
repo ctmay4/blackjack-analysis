@@ -87,6 +87,9 @@ test("secondary panels scroll independently and accept keyboard focus", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "Start practice" }).click();
   const sidebar = page.getByRole("complementary", { name: "Session overview" });
+  await expect(sidebar).toBeVisible();
+  // A late web-font swap can change layout independently of sidebar scrolling.
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await sidebar.focus();
   const before = await page.locator(".actions").boundingBox();
   await page.keyboard.press("End");

@@ -32,6 +32,9 @@ test("charts show real weighted history across sessions and survive refresh on m
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 844 });
+  // Fix wall-clock timestamps without freezing animation or browser timers.
+  // Each archive gets a distinct time even if the host clock changes mid-test.
+  await page.clock.setFixedTime(new Date("2026-01-01T12:00:00Z"));
   await page.goto("/");
   await page.getByLabel("Feedback mode").selectOption("correction");
   await page.getByRole("button", { name: "Start practice" }).click();
@@ -46,6 +49,7 @@ test("charts show real weighted history across sessions and survive refresh on m
   await expect(
     page.getByRole("heading", { name: "Set up your practice" }),
   ).toBeVisible();
+  await page.clock.setFixedTime(new Date("2026-01-02T12:00:00Z"));
   await page.getByRole("button", { name: "Start practice" }).click();
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
   await expect(
