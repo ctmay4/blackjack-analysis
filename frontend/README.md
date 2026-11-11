@@ -25,16 +25,21 @@ npm run preview --prefix frontend
 Open http://127.0.0.1:4173. `dist/` is standalone static HTML/CSS/JavaScript;
 relative Vite assets and home navigation support a GitHub Pages repository path.
 Don't open `index.html` through `file://`; use Vite preview or a static web host.
-The root README describes enabling and deploying GitHub Pages. No API URL or
-server-specific environment variables are required.
+The published trainer is https://ctmay4.github.io/blackjack-analysis/.
+The root README describes GitHub Pages deployment. No API URL or server-specific
+environment variables are required.
 
 ## Architecture
 
 - `src/engine/`: pure TypeScript game, strategy, trainer, settings, presentation
   contracts, and validated versioned checkpoints. See [engine notes](src/engine/README.md).
-- `src/session-controller.ts`: typed load/start/reset/choose/end/chart operations;
+- `src/session-controller.ts`: typed load/start/reset/choose/end/chart/history operations;
   owns session IDs, revisions, entropy, and lifecycle, not blackjack decisions.
-- `src/session-store.ts`: IndexedDB active-session store. Read/compare/write
+- `src/session-history.ts`: versioned session journals, recent-round/decision review,
+  conservative validation, archival, and decision-weighted cumulative statistics.
+- `src/History.tsx`: read-only history/review dialog, mistake filtering, refresh,
+  and confirmed history deletion, available before or during practice.
+- `src/session-store.ts`: IndexedDB active-session/history store. Read/compare/write
   mutations happen in a single transaction across tabs. Promises resolve only
   after commit, never merely after an individual write request succeeds.
 - `src/App.tsx`: approved React interface, dialogs, settings, and keyboard/touch
@@ -56,20 +61,45 @@ Database: `blackjack-studio`; object store: `sessions`; active key: `active`.
 The version-1 envelope stores an ID, revision, and a validated version-1 trainer
 checkpoint. Checkpoints include current physical cards/shoe, RNG state, config,
 feedback, pending decisions, scores/counters, and the settlement-recorded flag.
-This is not a hand-history database yet.
+The database version stays at 1, so deployed active saves need no destructive
+upgrade. Additional keys in the same store hold version-1 history metadata
+(`history`, including the active review journal) and individual immutable session
+archives (`history:<session ID>`). Ordinary choices update only active state and
+its bounded journal, not the whole archive. Ending/replacing a session writes its
+archive and deletes/replaces active state in the same transaction. History reads
+use one consistent read-only transaction across metadata and archives.
+
+Each archive retains full session counters/settings, timestamps, ending reason,
+settled bankroll/profit, and up to 200 recent rounds. Reviews include dealer/player
+cards, outcomes, split-hand indices, chosen/recommended actions, explanations,
+correction retries, and whether each choice was scored. Illegal choices are not
+counted as decisions. Delayed choices in abandoned rounds remain unscored, with
+the dealer hole card masked. Active journals are never returned by the history
+presentation API; pending recommendations cannot leak into active play.
+Cumulative accuracy uses total correct / total decisions, best streak is the
+maximum session streak, and profit excludes unsettled rounds. Totals include
+ended/replaced sessions only; whole-session counters survive review retention.
+
+Pre-history active saves still restore unchanged, and their full counters enter
+history when ended. Only the current and subsequent rounds can be reviewed;
+partial coverage and unknown start times are labeled rather than fabricated.
 
 Schemas bound/validate cards, ranks/values, counters, settings, round structure,
 settlements, and delayed-feedback state before hydration. Future versions are
 rejected conservatively instead of overwritten. Corrupt/unsupported data remains
-untouched until the explicit **Discard saved session** recovery confirmation.
+untouched until explicit recovery: **Discard saved session** affects the active
+record, while confirmed **Delete saved history** removes archives and repairs
+unreadable history metadata without changing active hands or scores. If metadata
+is valid, history deletion also preserves the current review journal.
 Storage failures are visible; there is no silent unsaved-memory fallback.
 
 Browser/profile/origin boundaries apply: localhost ports and the published site
 have separate saves. Clearing site data, browser eviction, or private browsing
 can lose data. No server expiry, cookie, cloud sync, or automatic old-server
 session migration exists. Multiple tabs share an active save but do not receive
-push updates; reload/the next operation reconciles it. Ending a session deletes
-only its active record, not the database or future history records.
+push updates; reload/the next operation reconciles active state. Use **Refresh
+history** to see archives added by another tab. Ending a session archives it and
+deletes only its active record, not the database or earlier history records.
 
 Checkpoints contain hidden cards/internal recommendations because the entire
 engine runs locally. Only presentation snapshots mask these fields. This is a
@@ -117,5 +147,10 @@ Google Fonts are optional; system fallbacks work without them. Gameplay/chart
 operations work offline after the app loads, but offline opening/reloading isn't
 guaranteed until a service worker/PWA is added. No analytics are included.
 
-Remaining work: publish the prepared Pages workflow, add history/review/export/import,
-and expand Safari/Firefox, screen-reader, device, and performance coverage.
+Pages publishing and session history/review are implemented. Remaining work:
+export/import backups, cross-session mistake drills, offline/PWA support, and
+expanded Safari/Firefox, screen-reader, device, and performance coverage.
+
+CI and Pages use Ubuntu 24.04 with Node-24-compatible action releases. Build/test
+commands explicitly use Node 22; action runtimes are separate from that toolchain.
+Live deployment is restricted to `master`.

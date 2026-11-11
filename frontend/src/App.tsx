@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { defaults } from "./engine/session-config";
+import History from "./History";
 import type { Action, CardData } from "./engine/types";
 import type { ChartSection, Config, Snapshot } from "./engine/session-types";
 import { SessionError, sessionController } from "./session-controller";
@@ -37,7 +38,8 @@ const controls: { action: Action; label: string; key: string }[] = [
   { action: "split", label: "Split", key: "P" },
   { action: "surrender", label: "Surrender", key: "R" },
 ];
-type Overlay = "settings" | "chart" | "stats" | "help" | "summary" | null;
+type Overlay =
+  "settings" | "chart" | "stats" | "help" | "summary" | "history" | null;
 
 function Card({ data }: { data: CardData | null }) {
   if (!data)
@@ -163,7 +165,7 @@ function Settings({
     <form onSubmit={submit}>
       <p className="dialog-intro">
         {existing
-          ? "Choose your next focus. Starting a new session resets the current hands, bankroll, and statistics."
+          ? "Choose your next focus. Starting a new session saves the current session to history, then resets the hands, bankroll, and statistics."
           : "Set your pace. All money is virtual, and there’s no timer."}
       </p>
       <fieldset disabled={busy} className="settings-fields">
@@ -309,8 +311,8 @@ function Settings({
         )}
         {confirming && (
           <p className="confirmation" role="status">
-            Ready to start fresh? Your current session will be replaced. This
-            cannot be undone.
+            Ready to start fresh? Your current session will be saved to history
+            and replaced. Ended sessions cannot be resumed.
           </p>
         )}
         <button
@@ -330,9 +332,9 @@ function Settings({
         </button>
       </fieldset>
       <p className="form-note">
-        Saved in this browser. Refreshing resumes your hand; ending the session
-        or clearing site data removes it. Wagers aren’t capped by your virtual
-        bankroll.
+        Saved in this browser. Refreshing resumes your hand; ending a session
+        saves it to history. Clearing site data removes all progress. Wagers
+        aren’t capped by your virtual bankroll.
       </p>
     </form>
   );
@@ -672,6 +674,15 @@ export default function App() {
           <span className="local-label">
             <span className="status-dot" /> Browser-only
           </span>
+          <button
+            className="icon-button"
+            disabled={busy || loading}
+            onClick={() => open("history")}
+            aria-label="Open saved history"
+            title="Saved history"
+          >
+            ↶
+          </button>
           <button
             className="icon-button"
             onClick={() => open("help")}
@@ -1099,6 +1110,7 @@ export default function App() {
               stats: "Your progress",
               help: "At your fingertips",
               summary: "Session summary",
+              history: "Saved history",
             }[overlay]
           }
           eyebrow={
@@ -1108,6 +1120,7 @@ export default function App() {
               stats: "SMALL WINS ADD UP",
               help: "FIND YOUR FLOW",
               summary: "ONE HAND BETTER",
+              history: "YOUR PRACTICE, OVER TIME",
             }[overlay]
           }
           onClose={() => {
@@ -1133,8 +1146,9 @@ export default function App() {
               {overlay === "summary" && (
                 <>
                   <p className="confirmation">
-                    End this session? Your current hand and statistics will be
-                    cleared and cannot be recovered. Press Q again to confirm,
+                    End this session? Your statistics and recent hands will be
+                    saved to history. Unfinished rounds remain unsettled, and
+                    ended sessions cannot be resumed. Press Q again to confirm,
                     or Esc to keep practicing.
                   </p>
                   <button
@@ -1154,6 +1168,9 @@ export default function App() {
                 </>
               )}
             </>
+          )}
+          {overlay === "history" && (
+            <History onClear={() => mutate(() => sessionController.load())} />
           )}
           {overlay === "help" && <Help />}
           {overlay === "chart" && (

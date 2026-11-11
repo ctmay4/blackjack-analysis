@@ -10,7 +10,7 @@ for (const confirmWith of ["keyboard", "button"] as const) {
       page.getByRole("region", { name: "Blackjack practice table" }),
     ).toBeVisible();
     await page.keyboard.press("q");
-    await expect(page.getByRole("dialog")).toContainText("cannot be recovered");
+    await expect(page.getByRole("dialog")).toContainText("saved to history");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(

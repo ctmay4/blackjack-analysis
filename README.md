@@ -35,8 +35,9 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
 
 - **H** hit, **S** stand, **D** double, **P** split, **R** surrender when enabled.
 - **Enter** next hand; **T** strategy chart; **V** statistics; **?** help.
-- **Q** summary, then **Q** again or **End session** to clear the active session.
-  **Esc** cancels and returns to practice.
+- **Q** summary, then **Q** again or **End session** to archive the active session.
+  **Esc** cancels and returns to practice. Use the header's **Saved history** button
+  to review ended/replaced sessions, cumulative statistics, and mistakes.
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
 - Choose immediate feedback, require-correction, or delayed feedback.
 - Changing settings requires confirmation before replacing the current session.
@@ -51,12 +52,21 @@ statistics, pending delayed feedback, and random-generator state. Refresh resume
 that exact session without re-scoring choices or changing future shuffles.
 
 - Data stays in this browser/profile and site origin. Different local ports,
-  hostnames, or the future Pages site have separate saves.
+  hostnames, and the published Pages site have separate saves.
 - Tabs share the active session. Atomic storage transactions, session IDs, and
   revision checks prevent stale/double choices from being applied twice. Reload
   or the next action reconciles changes from another tab; there is no push sync.
-- Ending a session clears its active save. History across ended sessions is not
-  implemented yet. Previous Python-server sessions are not imported.
+- Ending or replacing a session atomically archives its statistics, settings,
+  settled profit, and recent hands before clearing/replacing its active save.
+  History includes all ended sessions; each keeps its latest **200 rounds** for
+  read-only review, while statistics cover the whole session. Ended sessions
+  cannot be resumed. Previous Python-server sessions are not imported.
+- Cumulative accuracy is weighted by decisions; active-session scores are excluded
+  until the session ends. Unfinished rounds do not count as settled outcomes or
+  profit. Pending delayed-feedback choices are marked unscored in review.
+- Existing saves resume unchanged. Their full scores are retained, but earlier
+  choices cannot be reconstructed; review labels this partial coverage. History
+  deletion requires confirmation and keeps active practice intact.
 - Clearing site data, browser eviction, or leaving private browsing can remove
   saves. No cloud backup or cross-device synchronization is provided yet.
 - Storage failures are reported rather than silently pretending progress was
@@ -72,11 +82,11 @@ system-font fallbacks work without them. No analytics are included.
 ## GitHub Pages
 
 The app is a static site and uses relative asset paths, including home navigation,
-so it works under a repository URL such as:
+so it works under the published repository URL:
 
-`https://ctmay4.github.io/blackjack-analysis/`
+**https://ctmay4.github.io/blackjack-analysis/**
 
-Deployment automation is in `.github/workflows/pages.yml`. To publish:
+Deployment automation is in `.github/workflows/pages.yml`. For a fresh deployment:
 
 1. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
 2. Push the changes to `master`, or manually run the Pages workflow on `master`.
@@ -86,6 +96,9 @@ Deployment automation is in `.github/workflows/pages.yml`. To publish:
 The site becomes available after a successful **Deploy browser trainer to GitHub
 Pages** workflow run. Check the repository's **Actions** tab for deployment status.
 No Python, API URL, deployment secrets, or external backend is used by the site.
+Both workflows pin Ubuntu 24.04 and use Node-24-compatible GitHub Actions; the
+application build/test toolchain remains Node 22. Feature branches and pull
+requests run CI without publishing the live site.
 
 ## Tests
 
@@ -111,8 +124,8 @@ intentional split-ace corrections.
    bankroll, practice filters, feedback modes, masked snapshots, and charts.
 3. **Browser-only cutover — complete:** typed local controller replaces HTTP;
    versioned validated saves restore sessions/RNG; browser tests use no Python.
-4. **Static hosting — prepared:** standalone Vite output, repository-subpath
-   coverage, and Pages workflow. Enable Pages and publish to finish this milestone.
+4. **Static hosting — complete:** standalone Vite output, repository-subpath
+   coverage, and automatic GitHub Pages deployment from `master`.
 5. **Legacy cleanup — complete:** Python/FastAPI, terminal UI/CLI, Python tests,
    packaging/lockfile, and temporary oracle generators have been removed.
    Application development, tests, CI, and deployment are now Node-only.
@@ -125,8 +138,7 @@ The original visual mockup remains in `mockup/`.
 
 ## Next milestones
 
-- IndexedDB history across ended sessions, cumulative stats, recent-hand review,
-  cross-session mistake drills, export/import backups, and JSON/CSV exports.
+- Cross-session mistake drills, export/import backups, and JSON/CSV exports.
 - Optional offline/PWA support, animations, and genuine historical charts.
 - Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.

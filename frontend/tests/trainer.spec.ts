@@ -62,7 +62,7 @@ test("settings require confirmation and correction mode retries without playing"
   await page
     .getByRole("button", { name: "Start new session", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toContainText("This cannot be undone");
+  await expect(page.getByRole("dialog")).toContainText("saved to history");
   await page.getByRole("button", { name: "Confirm new session" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const before = await page

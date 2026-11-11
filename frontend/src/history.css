@@ -1,0 +1,67 @@
+.history-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.history-tools .text-button {
+  font-size: 12px;
+  min-height: 40px;
+}
+.history-panel h3 {
+  margin-top: 24px;
+}
+.history-totals {
+  color: var(--accent);
+  line-height: 1.9;
+}
+.history-session {
+  display: block;
+  width: 100%;
+  padding: 16px 0;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+}
+.history-session:hover {
+  background: #ffffff08;
+}
+.history-session strong,
+.history-session span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.history-session span {
+  margin-top: 8px;
+  color: var(--muted);
+}
+.history-round .form-note {
+  margin-top: 12px;
+}
+.history-decisions {
+  padding-left: 22px;
+}
+.history-decisions li {
+  padding: 12px 0;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  line-height: 1.6;
+}
+.history-decisions strong {
+  color: var(--text);
+}
+.history-decisions p {
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 360px) {
+  .live-app .brand {
+    font-size: 16px;
+    gap: 8px;
+  }
+  .live-app .app-header nav {
+    gap: 6px;
+  }
+}

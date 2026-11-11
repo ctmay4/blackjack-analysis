@@ -140,6 +140,7 @@ const checkpoint = z.strictObject({
     .max(512),
   recorded: z.boolean(),
 });
+export { card as cardSchema, stats as statsSchema };
 export type StatsCheckpoint = z.infer<typeof stats>;
 export type TrainerCheckpoint = Omit<z.infer<typeof checkpoint>, "config"> & {
   config: Config;

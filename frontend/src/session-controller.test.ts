@@ -92,9 +92,10 @@ it("keeps old state on save failures, never committing partially scored choices"
   const initial = await controller.start({});
   const failedStore: SessionStore = {
     read: () => store.read(),
+    readHistory: () => store.readHistory(),
     change: (operation) =>
-      store.change((value) => {
-        operation(value);
+      store.change((value, history) => {
+        operation(value, history);
         throw new StorageFailure();
       }),
   };

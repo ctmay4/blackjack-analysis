@@ -113,5 +113,9 @@ rejects unknown fields, nonfinite numbers, coerced string amounts, and non-plain
 
 ## Next milestones
 
-1. Enable Pages and publish the prepared standalone build/deployment workflow.
-2. Add history/review/export/import and, if useful, Web Worker simulations.
+Pages deployment and browser-local session history/review are complete. History
+is an application-layer concern (`../session-history.ts`), not part of trainer
+checkpoints; engine fixtures and active-save formats remain unchanged.
+
+Next: export/import backups, cross-session mistake drills, and, if useful,
+Web Worker simulations.
