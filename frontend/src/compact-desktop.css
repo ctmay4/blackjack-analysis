@@ -1,0 +1,132 @@
+/* On wide, shorter screens, spend width instead of sacrificing readable cards.
+   No viewport clipping or fixed overlays: unusual long/split hands may still
+   grow the table naturally, and browser zoom can fall back to the stacked UI. */
+@media (min-width: 1280px) and (max-height: 1100px) {
+  .is-playing .app-header {
+    height: 72px;
+  }
+  .is-playing .page-heading {
+    padding: 18px 0;
+  }
+  .is-playing .page-heading h1 {
+    margin: 6px 0;
+  }
+  .is-playing .workspace {
+    align-items: start;
+  }
+  .is-playing .table-toolbar {
+    padding: 16px 24px;
+  }
+  .is-playing .play-surface {
+    display: grid;
+    grid-template-areas:
+      "dealer player"
+      "divider divider"
+      "caption caption";
+    grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.5fr);
+    align-content: center;
+    align-items: start;
+    column-gap: 24px;
+    row-gap: 16px;
+    min-height: 320px;
+    padding: 24px 24px 16px;
+  }
+  .is-playing .dealer-zone {
+    grid-area: dealer;
+    min-width: 0;
+    height: 100%;
+    padding-right: 20px;
+    border-right: 1px solid #a8d9c41a;
+  }
+  .is-playing .player-zone {
+    grid-area: player;
+    min-width: 0;
+  }
+  .is-playing .player-hands {
+    gap: 18px 12px;
+  }
+  .is-playing .player-hand {
+    min-width: 0;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+  .is-playing .is-split .player-hand {
+    flex: 1 1 calc(2 * var(--desktop-card-width) + 31px);
+  }
+  .is-playing .play-surface:has(.dealer-zone .card:nth-child(4)) {
+    grid-template-columns: minmax(340px, 1fr) minmax(0, 1.3fr);
+  }
+  .is-playing .player-hand:has(.card:nth-child(4)) {
+    min-width: min(100%, 340px);
+  }
+  /* Fan common multi-card hands instead of adding another full-height row.
+     Every rank/suit corner remains visible; six-plus cards wrap normally. */
+  .is-playing .cards:has(.card:nth-child(3)):not(:has(.card:nth-child(6))) {
+    display: grid;
+    grid-template-columns:
+      repeat(calc(var(--card-count) - 1), minmax(0, var(--desktop-card-width)))
+      var(--desktop-card-width);
+    gap: 0;
+    width: 100%;
+    max-width: calc(var(--card-count) * var(--desktop-card-width));
+    margin-inline: auto;
+  }
+  .is-playing .table-divider {
+    grid-area: divider;
+    width: min(430px, 85%);
+    margin: 0 auto;
+  }
+  .is-playing .round-caption {
+    grid-area: caption;
+    margin: 0;
+  }
+  .is-playing .decision-area {
+    padding: 18px 24px 12px;
+  }
+  .is-playing .sidebar {
+    /* Only secondary panels scroll, leaving the table in the page flow.
+       The aside is keyboard-focusable so this isn't a mouse-only scroll area. */
+    max-height: max(300px, calc(100dvh - 304px));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #52776f transparent;
+    scrollbar-gutter: stable;
+    padding: 2px 8px 6px 2px;
+    border-radius: 14px;
+  }
+  .is-playing .sidebar .panel {
+    padding: 20px;
+  }
+  .is-playing .sidebar .accuracy-block {
+    margin-top: 18px;
+  }
+  .is-playing .sidebar .mini-metrics {
+    margin-top: 16px;
+    padding-top: 14px;
+  }
+  .is-playing .session-footer {
+    margin-top: 8px;
+  }
+  .is-playing .page-footer {
+    padding: 16px 0;
+  }
+}
+
+@media (min-width: 1280px) and (max-height: 800px) {
+  .is-playing .app-header {
+    height: 64px;
+  }
+  .is-playing .page-heading {
+    padding: 12px 0;
+  }
+  .is-playing .page-heading .eyebrow {
+    display: none;
+  }
+  .is-playing .play-surface {
+    min-height: 300px;
+    row-gap: 12px;
+    padding-top: 20px;
+    padding-bottom: 16px;
+  }
+}

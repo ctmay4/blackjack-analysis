@@ -101,8 +101,17 @@ revision conflicts rather than push notifications.
 
 The approved slate/mint design is retained with responsive cards, an active
 split-hand outline, a desktop statistics sidebar, a compact mobile stats strip,
-and native accessible dialogs. Fonts optionally load from Google Fonts with
-system-font fallbacks; all other application assets are local.
+and native accessible dialogs. On wide viewports (at least 1280px) up to 1100px
+high, dealer and player hands sit side by side, with tighter header spacing and
+an independently scrollable, keyboard-focusable statistics sidebar. Common
+three-to-five-card hands fan without shrinking cards or covering rank corners.
+Larger split groups and unusually long hands can still grow the table naturally;
+no gameplay is clipped to force a fixed viewport. Taller desktops, tablets, and
+phones retain the stacked layout. Browser tests check primary controls at
+1440×900, 1920×1080, and 1280×800, including settlement and split-hand examples.
+
+Fonts optionally load from Google Fonts with system-font fallbacks; all other
+application assets are local.
 
 No historical chart is fabricated: the mockup's sample sparkline is replaced
 by a neutral accuracy emblem until real historical data exists. Animations,

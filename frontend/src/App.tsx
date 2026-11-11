@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { ApiError, defaults, request } from "./api";
 import type { Action, CardData, ChartSection, Config, Snapshot } from "./api";
 
@@ -625,7 +625,7 @@ export default function App() {
         : "";
 
   return (
-    <div className="app-shell live-app">
+    <div className={`app-shell live-app${state ? " is-playing" : ""}`}>
       <header className="app-header">
         <a className="brand" href="/" aria-label="Blackjack Studio home">
           <span className="brand-mark">♠</span>
@@ -774,7 +774,14 @@ export default function App() {
                           : `${state.dealer_cards[0]?.value === 11 ? "A" : state.dealer_cards[0]?.value} showing`}
                       </span>
                     </div>
-                    <div className="cards">
+                    <div
+                      className="cards"
+                      style={
+                        {
+                          "--card-count": state.dealer_cards.length,
+                        } as CSSProperties
+                      }
+                    >
                       {state.dealer_cards.map((data, index) => (
                         <Card key={index} data={data} />
                       ))}
@@ -805,7 +812,14 @@ export default function App() {
                                 : ""}
                             </span>
                           </div>
-                          <div className="cards">
+                          <div
+                            className="cards"
+                            style={
+                              {
+                                "--card-count": hand.cards.length,
+                              } as CSSProperties
+                            }
+                          >
                             {hand.cards.map((data, cardIndex) => (
                               <Card key={cardIndex} data={data} />
                             ))}
@@ -897,7 +911,11 @@ export default function App() {
                   </div>
                 </div>
               </section>
-              <aside className="sidebar" aria-label="Session overview">
+              <aside
+                className="sidebar"
+                aria-label="Session overview"
+                tabIndex={0}
+              >
                 <section className="panel session-panel">
                   <div className="panel-heading">
                     <h2>Your session</h2>
