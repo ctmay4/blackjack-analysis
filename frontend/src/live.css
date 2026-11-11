@@ -160,14 +160,19 @@
 .surrender-action kbd {
   font-size: 9px;
 }
-.session-footer {
+.heading-tools {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
-  margin-top: 18px;
+  gap: 8px 16px;
 }
-.session-footer .text-button {
-  font-size: 11px;
-  min-height: 32px;
+.heading-tools .summary-trigger {
+  font-size: 12px;
+  min-height: 44px;
+}
+.heading-tools .chart-trigger {
+  position: static;
 }
 .chart-legend {
   flex-wrap: wrap;
@@ -225,6 +230,9 @@
   flex-shrink: 0;
 }
 @media (max-width: 850px) {
+  .page-heading {
+    flex-wrap: wrap;
+  }
   .setup-layout {
     gap: 30px;
     grid-template-columns: 1fr;
@@ -318,9 +326,13 @@
   .action-footer .text-button {
     min-height: 36px;
   }
-  .chart-trigger {
-    min-width: 35px;
-    min-height: 35px;
+  .heading-tools {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+  .heading-tools .chart-trigger {
+    min-width: 44px;
+    min-height: 44px;
   }
   .error-banner {
     align-items: flex-start;

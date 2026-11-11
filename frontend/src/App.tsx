@@ -791,13 +791,21 @@ export default function App() {
                 <h1>Make your next move better.</h1>
                 <p>No pressure. Just you, the cards, and a little progress.</p>
               </div>
-              <button
-                className="button secondary chart-trigger"
-                onClick={() => open("chart")}
-                aria-label="Open strategy chart"
-              >
-                <span aria-hidden="true">▦</span> Strategy chart <kbd>T</kbd>
-              </button>
+              <div className="heading-tools">
+                <button
+                  className="text-button summary-trigger"
+                  onClick={() => open("summary")}
+                >
+                  View session summary ↗
+                </button>
+                <button
+                  className="button secondary chart-trigger"
+                  onClick={() => open("chart")}
+                  aria-label="Open strategy chart"
+                >
+                  <span aria-hidden="true">▦</span> Strategy chart <kbd>T</kbd>
+                </button>
+              </div>
             </div>
             <div className="mobile-stats" aria-label="Session at a glance">
               <div>
@@ -1105,20 +1113,8 @@ export default function App() {
                 </div>
               </aside>
             </div>
-            <div className="session-footer">
-              <button className="text-button" onClick={() => open("summary")}>
-                View session summary ↗
-              </button>
-            </div>
           </>
         )}
-        <footer className="page-footer">
-          <span>BUILT FOR BETTER DECISIONS</span>
-          <span>
-            Basic strategy practice <span className="footer-dot">·</span> No
-            real money
-          </span>
-        </footer>
       </main>
       {overlay && (
         <Modal

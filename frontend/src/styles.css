@@ -805,21 +805,6 @@ h2 {
   font-size: 10px;
   margin: 0;
 }
-.page-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 28px 0;
-  color: #647d85;
-  font-size: 9px;
-}
-.page-footer > span:first-child {
-  letter-spacing: 1.7px;
-  font-size: 8px;
-}
-.footer-dot {
-  padding: 0 8px;
-}
 dialog {
   background: #19252b;
   color: var(--text);
@@ -1124,9 +1109,6 @@ summary {
   .player-hand {
     min-width: 200px;
   }
-  .page-footer {
-    padding: 24px 0;
-  }
   .chart-trigger {
     padding: 10px;
   }
@@ -1408,13 +1390,6 @@ summary {
   }
   .quiet-note {
     padding: 3px 5px;
-  }
-  .page-footer {
-    font-size: 8px;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 23px 0;
   }
   dialog {
     padding: 22px;
