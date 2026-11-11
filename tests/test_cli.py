@@ -74,6 +74,14 @@ class CliTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("--bet must be positive", result.stderr)
 
+    def test_web_command_help_and_port(self):
+        result = self.command("web", "--help")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--port", result.stdout)
+        self.assertEqual(_parse_cli(["web"]).port, 8000)
+        self.assertEqual(_parse_cli(["web", "--port", "8080"]).port, 8080)
+        self.assertNotEqual(self.command("web", "--port", "0").returncode, 0)
+
     def test_training_practice_and_feedback_flags(self):
         with patch("blackjack_analysis.trainer_tui.TrainerApp") as app:
             main(["train", "--practice", "pair", "--require-correction", "--seed", "42"])

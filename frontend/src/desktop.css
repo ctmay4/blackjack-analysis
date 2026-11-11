@@ -1,0 +1,268 @@
+/* Comfortable desktop sizing without changing the compact tablet/mobile layouts.
+   Size actual cards and type rather than scaling/zooming the entire page. */
+@media (min-width: 1024px) {
+  :root {
+    --muted: #a6b8bf;
+    --desktop-card-width: clamp(104px, 6vw, 120px);
+    --desktop-card-height: clamp(148px, 8.5vw, 170px);
+  }
+
+  .app-shell {
+    max-width: 1640px;
+    padding: 0 clamp(28px, 3vw, 56px);
+  }
+  .app-header {
+    height: 88px;
+  }
+  .brand {
+    font-size: 24px;
+  }
+  .brand small {
+    font-size: 10px;
+  }
+  .local-label {
+    font-size: 14px;
+  }
+  .icon-button {
+    width: 42px;
+    height: 42px;
+    font-size: 21px;
+  }
+  .page-heading {
+    padding: 24px 0 20px;
+  }
+  .page-heading p {
+    font-size: 16px;
+  }
+  .eyebrow {
+    font-size: 12px;
+  }
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) clamp(320px, 23vw, 360px);
+    gap: 26px;
+  }
+  .table-toolbar {
+    padding: 19px 24px;
+  }
+  .table-label,
+  .rules-summary {
+    font-size: 12px;
+  }
+  .rules-summary {
+    color: var(--muted);
+  }
+  .play-surface {
+    min-height: 500px;
+    padding: 20px 24px 12px;
+  }
+  .hand-heading {
+    font-size: 13px;
+    color: #b3cbce;
+    margin-bottom: 12px;
+  }
+  .hand-heading > span {
+    font-size: 14px;
+    padding: 3px 11px;
+    color: #c3d3d6;
+  }
+  .player-hand {
+    padding-bottom: 4px;
+  }
+  .player-hand .hand-heading {
+    margin-bottom: 12px;
+  }
+  .cards {
+    gap: 13px;
+    min-height: var(--desktop-card-height);
+  }
+  .card {
+    width: var(--desktop-card-width);
+    height: var(--desktop-card-height);
+    border-radius: 10px;
+  }
+  .card-corner {
+    font-size: 28px;
+    top: 11px;
+    left: 12px;
+    gap: 4px;
+  }
+  .card-corner small {
+    font-size: 19px;
+  }
+  .card-center {
+    font-size: 52px;
+  }
+  .card-bottom {
+    font-size: 24px;
+    right: 11px;
+    bottom: 10px;
+  }
+  .card.back:after {
+    width: 52px;
+    height: 52px;
+    font-size: 38px;
+  }
+  .table-divider {
+    width: min(430px, 90%);
+    font-size: 10px;
+    color: #94b5b0;
+    margin: 16px auto;
+  }
+  .hand-bet,
+  .round-caption {
+    font-size: 13px;
+    color: #abc2c5;
+  }
+  .hand-bet {
+    margin-top: 10px;
+  }
+  .bet-chip {
+    width: 21px;
+    height: 21px;
+    font-size: 11px;
+  }
+  .round-caption {
+    margin-top: 8px;
+  }
+  .decision-area {
+    padding: 22px 24px 16px;
+  }
+  .feedback {
+    min-height: 76px;
+    padding: 15px 16px;
+    gap: 14px;
+  }
+  .feedback strong {
+    font-size: 16px;
+  }
+  .feedback p {
+    font-size: 14px;
+  }
+  .feedback-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .action-button {
+    min-height: 56px;
+    font-size: 16px;
+  }
+  kbd,
+  .surrender-action kbd {
+    font-size: 12px;
+    padding: 4px 7px;
+    color: #b8cbce;
+  }
+  .surrender-action {
+    min-height: 36px;
+    font-size: 14px;
+  }
+  .action-footer,
+  .action-footer .text-button {
+    font-size: 12px;
+    color: #a6bdc4;
+  }
+  .action-footer .text-button {
+    min-height: 32px;
+  }
+  .button,
+  .chart-trigger {
+    font-size: 15px;
+  }
+  .panel {
+    padding: 24px;
+  }
+  .panel-heading h2 {
+    font-size: 16px;
+  }
+  .pill {
+    font-size: 10px;
+    letter-spacing: 0.6px;
+  }
+  .metric-label,
+  .mini-metrics .metric-label {
+    font-size: 14px;
+  }
+  .accuracy-value {
+    font-size: 52px;
+  }
+  .accuracy-value > span {
+    font-size: 26px;
+  }
+  .metric-note,
+  .mini-metrics small {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .mini-metrics strong {
+    font-size: 30px;
+  }
+  .panel-link {
+    font-size: 14px;
+    min-height: 42px;
+  }
+  .bankroll-value {
+    font-size: 36px;
+  }
+  .bankroll-value > span {
+    font-size: 25px;
+  }
+  .bankroll-bottom {
+    font-size: 12px;
+    gap: 8px;
+  }
+  .focus-row strong {
+    font-size: 15px;
+  }
+  .focus-row p {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .settings-chips span {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+  .quiet-note p {
+    font-size: 13px;
+    color: #a0b7bf;
+  }
+  .session-footer .text-button,
+  .page-footer,
+  .page-footer > span:first-child {
+    font-size: 12px;
+    color: #a0b7bf;
+  }
+  dialog {
+    width: min(620px, calc(100% - 48px));
+    padding: 32px;
+  }
+  .dialog-intro,
+  .field,
+  .checkbox-field,
+  summary,
+  .form-note,
+  .form-warning,
+  .confirmation,
+  .shortcut-list > div,
+  .review-heading,
+  .review-item,
+  .breakdown-row,
+  .breakdown-row small {
+    font-size: 14px;
+  }
+  .dialog-header h2 {
+    font-size: 28px;
+  }
+  .field input,
+  .field select {
+    font-size: 16px;
+  }
+  .strategy-chart,
+  .strategy-chart caption,
+  .chart-legend {
+    font-size: 14px;
+  }
+  .strategy-chart td {
+    padding: 10px 7px;
+  }
+}

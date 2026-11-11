@@ -435,6 +435,14 @@ def _add_practice_options(parser):
 
 
 def _parse_cli(argv):
+    if argv and argv[0] == "web":
+        parser = argparse.ArgumentParser(description="Launch the local Blackjack Studio web trainer")
+        parser.add_argument("command", choices=["web"])
+        parser.add_argument("--port", type=int, default=8000)
+        args = parser.parse_args(argv)
+        if not 1 <= args.port <= 65535:
+            parser.error("--port must be between 1 and 65535")
+        return args
     if argv and argv[0] in ("train", "simulate"):
         parser = argparse.ArgumentParser(description="Blackjack simulation and basic-strategy training")
         commands = parser.add_subparsers(dest="command", required=True)
@@ -449,7 +457,7 @@ def _parse_cli(argv):
     else:
         parser = argparse.ArgumentParser(
             description="Blackjack simulation and basic-strategy training",
-            epilog="Commands: train (interactive trainer), simulate (batch simulation). "
+            epilog="Commands: train (terminal trainer), simulate (batch simulation), web (browser trainer). "
                    "Without a command, legacy simulation options and --train still work.",
         )
         _add_table_options(parser, bankroll=INITIAL_MONEY)
@@ -476,6 +484,14 @@ def _parse_cli(argv):
 
 def main(argv=None):
     args = _parse_cli(sys.argv[1:] if argv is None else argv)
+
+    if getattr(args, "command", None) == "web":
+        try:
+            from .web import main as web_main
+        except ImportError as exc:
+            raise SystemExit('Web dependencies missing. Install with: uv sync --extra web') from exc
+        web_main(["--port", str(args.port)])
+        return
 
     strategy_type = StrategyType(args.strategy)
     rules = Rules(

@@ -44,6 +44,41 @@ uv run python -m blackjack_analysis train --practice soft --delayed-feedback
 uv run python -m blackjack_analysis train --practice surrender --surrender --require-correction
 ```
 
+## Browser trainer
+
+The local web trainer uses the same Python game and teaching engine, with a
+responsive React/TypeScript interface based on the approved `mockup/` design.
+Install the optional web dependencies and build the frontend (Node.js 20.19+ or
+22.12+ recommended):
+
+```sh
+uv sync --extra web
+npm ci --prefix frontend
+npm run build --prefix frontend
+uv run --extra web python -m blackjack_analysis web
+```
+
+Open **http://127.0.0.1:8000**. Use `web --port 8080` to choose another port.
+For pip installations, use `python3 -m pip install -e '.[web]'`, build the
+frontend as above, and run `python3 -m blackjack_analysis web`.
+Build before packaging a wheel to include the generated frontend assets.
+
+Choose your practice focus, feedback mode, bankroll, wager, and table rules on
+the setup screen. Play with buttons or the terminal trainer's action shortcuts.
+Open the strategy chart with `T`, statistics with `V`, the session summary with
+`Q`, or help with `?`. In the summary, press `Q` again or click **End session**
+to clear the session and return to setup; `Esc` cancels. Settings also require
+confirmation before replacing a session.
+
+Sessions live in memory and resume on refresh using a private browser cookie.
+They are cleared by server restarts or 12 hours of inactivity. No accounts,
+durable history, or real money are involved. As in the terminal trainer, the
+virtual bankroll does not limit legal wagers. The server binds only to
+`127.0.0.1`; public hosting is not supported in this first pass.
+
+See [`frontend/README.md`](frontend/README.md) for development, API details,
+and browser tests. Google Fonts are optional; system fonts work offline.
+
 ## Run simulations
 
 After installation, run the simulator with:
@@ -155,12 +190,14 @@ ace is represented by 11.
 - Generate drills from frequently missed situations
 - Export session results as JSON or CSV
 
-### 8. Web frontend
+### 8. Web frontend — first pass complete
 
-- Reuse `TrainerSession`; do not duplicate blackjack rules in JavaScript
-- Expose cards, actions, feedback, and statistics through an HTTP or WebSocket API
-- Build a responsive, accessible interface with keyboard and touch controls
-- Add optional animations, charts, and mobile layouts
+- Reuse `TrainerSession`; no blackjack rules duplicated in JavaScript
+- Local FastAPI HTTP API with private sessions and revision-checked actions
+- Responsive React/TypeScript interface with keyboard and touch controls
+- Settings, rule-based strategy charts, session statistics, and summary overlays
+- Automated API and Chromium browser coverage, including mobile layouts
+- Optional future polish: animations, historical trend charts, and additional browser testing
 
 ### 9. Advanced training modes
 

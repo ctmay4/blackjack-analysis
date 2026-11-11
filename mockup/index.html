@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Blackjack Studio — design preview</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="preview-bar"><span><span class="preview-dot"></span> DESIGN PREVIEW <span class="preview-note">/ Sample data · not a live game</span></span><label>Scene <select id="scene"><option value="decision">Your decision</option><option value="mistake">Learning moment</option><option value="split">Split hands</option><option value="complete">Round complete</option></select></label></div>
+  <div class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="./" aria-label="Blackjack Studio home"><span class="brand-mark">♠</span><span>blackjack<span class="brand-light"> / studio</span><small>A LITTLE PRACTICE. A BETTER GAME.</small></span></a>
+      <nav aria-label="Tools"><span class="local-label"><span class="status-dot"></span> Local session</span><button class="icon-button" data-dialog="help-dialog" aria-label="Open help">?</button><button class="icon-button" data-dialog="settings-dialog" aria-label="Open session settings">⚙</button></nav>
+    </header>
+
+    <main>
+      <div class="page-heading"><div><div class="eyebrow">THE PRACTICE ROOM</div><h1>Make your next move better.</h1><p>No pressure. Just you, the cards, and a little progress.</p></div><button class="button secondary chart-trigger" data-dialog="chart-dialog"><span aria-hidden="true">▦</span> Strategy chart <kbd>T</kbd></button></div>
+      <div class="workspace">
+        <section class="table-panel" aria-label="Blackjack practice table">
+          <div class="table-toolbar"><span class="table-label"><span class="status-dot"></span> BASIC STRATEGY</span><span class="rules-summary">6 decks <span>·</span> Dealer stands on 17 <span>·</span> 3:2</span></div>
+          <div class="play-surface">
+            <div class="table-watermark" aria-hidden="true">♠</div>
+            <section class="dealer-zone" aria-label="Dealer hand"><div class="hand-heading">DEALER <span id="dealer-total">10 showing</span></div><div class="cards" id="dealer-cards"></div></section>
+            <div class="table-divider"><span>BLACKJACK PAYS 3 TO 2</span></div>
+            <section class="player-zone" aria-label="Your hands"><div id="player-hands" class="player-hands"></div></section>
+            <div class="round-caption" id="round-caption">Round 29 <span>·</span> Your turn</div>
+          </div>
+          <div class="decision-area">
+            <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+            <div class="actions" id="actions"></div>
+            <div class="action-footer"><span id="action-hint">Choose an action or use your keyboard</span><button class="text-button" data-dialog="help-dialog">Keyboard shortcuts ↗</button></div>
+          </div>
+        </section>
+
+        <aside class="sidebar" aria-label="Session overview">
+          <section class="panel session-panel"><div class="panel-heading"><h2>Your session</h2><span class="pill">IN PROGRESS</span></div><div class="accuracy-block"><div class="metric-label">Decision accuracy</div><div class="accuracy-value">94<span>%</span><svg viewBox="0 0 110 35" aria-label="Sample accuracy trend" role="img"><path d="M2 29 L15 23 L27 26 L40 17 L52 19 L65 10 L78 13 L92 5 L107 3" /></svg></div><div class="progress-track"><span></span></div><p class="metric-note">47 of 50 decisions on strategy</p></div><div class="mini-metrics"><div><span class="metric-label">Current streak</span><strong>12 <span class="streak-icon">↗</span></strong><small>Best: 18</small></div><div><span class="metric-label">Rounds played</span><strong id="round-count">28</strong><small>A little better each hand</small></div></div><button class="panel-link" data-dialog="stats-dialog">Explore your progress <span>↗</span></button></section>
+          <section class="panel bankroll-panel"><div class="panel-heading"><h2>Practice bankroll</h2><span class="subtle-icon" aria-hidden="true">◈</span></div><div class="bankroll-value" id="bankroll">$1,125<span>.00</span></div><div class="bankroll-bottom"><span class="profit" id="profit">↗ $125.00 this session</span><span>$25 wager</span></div></section>
+          <section class="panel practice-panel"><div class="panel-heading"><h2>Your focus</h2><span class="subtle-icon" aria-hidden="true">◎</span></div><div class="focus-row"><span class="focus-icon">♧</span><div><strong>All hands</strong><p>Build a well-rounded foundation</p></div></div><div class="settings-chips"><span>Immediate feedback</span><span>S17</span></div><button class="panel-link" data-dialog="settings-dialog">Session settings <span>↗</span></button></section>
+          <div class="quiet-note"><span aria-hidden="true">✧</span><p>Focus on the decision, not the outcome.<br>A good move can still lose a hand.</p></div>
+        </aside>
+      </div>
+      <footer class="page-footer"><span>BUILT FOR BETTER DECISIONS</span><span>Basic strategy practice <span class="footer-dot">·</span> No real money</span></footer>
+    </main>
+  </div>
+
+  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-header"><div><div class="eyebrow">MAKE IT YOURS</div><h2 id="settings-title">Session settings</h2></div><button class="icon-button" data-close aria-label="Close settings">×</button></div><p class="dialog-intro">Preview the setup screen. These controls are illustrative and do not change the sample game.</p><form method="dialog"><label class="field">Practice focus<select><option>All hands</option><option>Hard hands</option><option>Soft hands</option><option>Pairs</option><option>Surrender</option><option>Frequently missed</option></select></label><label class="field">Feedback mode<select><option>Immediate feedback</option><option>Require correction</option><option>After the round</option></select></label><div class="field-grid"><label class="field">Starting bankroll<input type="number" value="1000" min="1"></label><label class="field">Wager<input type="number" value="25" min="1"></label></div><details><summary>Table rules</summary><label class="field">Dealer behavior<select><option>Stand on soft 17</option><option>Hit on soft 17</option></select></label><label class="field">Decks<select><option>6</option><option>8</option><option>2</option></select></label><label class="checkbox-field"><input type="checkbox" checked> Double after split</label><label class="checkbox-field"><input type="checkbox"> Late surrender</label></details><p class="form-note">In the finished app, changing rules will require confirmation and start a new session.</p><button class="button primary full-width">Done with preview</button></form></dialog>
+
+  <dialog id="chart-dialog" aria-labelledby="chart-title"><div class="dialog-header"><div><div class="eyebrow">A LITTLE GUIDANCE</div><h2 id="chart-title">Strategy chart</h2></div><button class="icon-button" data-close aria-label="Close strategy chart">×</button></div><p class="dialog-intro">Layout preview only: a hard-hand excerpt for S17. The finished chart will use your selected rules.</p><div class="chart-scroll"><table class="strategy-chart"><caption>Player total versus dealer upcard</caption><thead><tr><th>You</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>A</th></tr></thead><tbody id="chart-body"></tbody></table></div><div class="chart-legend"><span><b class="chart-hit">H</b> Hit</span><span><b class="chart-stand">S</b> Stand</span></div><p class="form-note">Showing hard totals 12–17 only. No surrender in this sample.</p></dialog>
+
+  <dialog id="stats-dialog" aria-labelledby="stats-title"><div class="dialog-header"><div><div class="eyebrow">SMALL WINS ADD UP</div><h2 id="stats-title">Your progress</h2></div><button class="icon-button" data-close aria-label="Close statistics">×</button></div><p class="dialog-intro">Sample statistics for this session.</p><div class="breakdown-row"><span>Hard hands</span><strong>96% <small>24 / 25</small></strong></div><div class="breakdown-row"><span>Soft hands</span><strong>92% <small>12 / 13</small></strong></div><div class="breakdown-row"><span>Pairs</span><strong>92% <small>11 / 12</small></strong></div><h3 class="review-heading">Worth another look</h3><div class="review-item"><span>Hard 16 vs 10</span><span>1 miss</span></div><div class="review-item"><span>Soft 18 vs 9</span><span>1 miss</span></div><div class="review-item"><span>Pair of 9s vs 7</span><span>1 miss</span></div><p class="form-note">Accuracy measures decisions, not whether the hand won.</p></dialog>
+
+  <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-header"><div><div class="eyebrow">FIND YOUR FLOW</div><h2 id="help-title">At your fingertips</h2></div><button class="icon-button" data-close aria-label="Close help">×</button></div><div class="shortcut-list"><div><span>Hit</span><kbd>H</kbd></div><div><span>Stand</span><kbd>S</kbd></div><div><span>Double down</span><kbd>D</kbd></div><div><span>Split</span><kbd>P</kbd></div><div><span>Surrender, when available</span><kbd>R</kbd></div><div><span>Next hand</span><kbd>Enter</kbd></div><div><span>Strategy chart</span><kbd>T</kbd></div><div><span>Close overlay</span><kbd>Esc</kbd></div></div><p class="form-note">This mockup switches between fixed sample scenes. Actions do not run a real game.</p></dialog>
+</body>
+</html>

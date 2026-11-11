@@ -1,9 +1,9 @@
 import random
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from .game import BlackjackGame, Outcome, RoundStatus, Rules, Shoe
-from .strategy import Decision, Recommendation, Strategy, StrategyType
+from .strategy import Decision, Hand, Recommendation, Strategy, StrategyType
 
 
 @dataclass(frozen=True)
@@ -263,6 +263,24 @@ class TrainerSession:
             self.stats.player_busts += total > 21
             self.stats.player_blackjacks += len(values) == 2 and total == 21 and not hand.split_hand
 
+    def strategy_chart(self):
+        """Two-card reference decisions for the configured rules, not live hints."""
+        sections = [
+            ("Hard", [(str(total), (2, total - 2) if total < 12 else (10, total - 10))
+                      for total in range(5, 21)]),
+            ("Soft", [(f"A,{card}", (11, card)) for card in range(2, 10)]),
+            ("Pairs", [("A,A" if card == 11 else f"{card},{card}", (card, card))
+                       for card in range(2, 12)]),
+        ]
+        return [{"name": name, "rows": [
+            {"label": label, "actions": [self.strategy.decide(
+                dealer, Hand.from_cards(cards),
+                can_split=name == "Pairs" and self.rules.max_splits > 0
+                and (self.rules.resplit_aces or cards[0] != 11),
+            ).value for dealer in range(2, 12)]}
+            for label, cards in rows
+        ]} for name, rows in sections]
+
     def snapshot(self):
         complete = self.round.status is RoundStatus.COMPLETE
 
@@ -279,6 +297,15 @@ class TrainerSession:
         )
         return {
             "status": self.round.status.value,
+            "round_number": self.stats.rounds + (not complete),
+            "round_profit": self.round.result.profit if complete else None,
+            "dealer_total": self.round.dealer_hand.total if complete else None,
+            "config": {
+                "rules": asdict(self.rules), "bankroll": self.initial_bankroll,
+                "bet": self.bet, "practice": self.practice,
+                "feedback_mode": "correction" if self.require_correction else
+                "delayed" if self.delayed_feedback else "immediate",
+            },
             "dealer_cards": dealer_cards,
             "hands": [
                 {
@@ -287,11 +314,20 @@ class TrainerSession:
                     "soft": hand.soft,
                     "active": index == self.round.active_hand_index,
                     "bet": hand.bet,
+                    "finished": hand.finished,
+                    "outcome": self.round.result.hands[index].outcome.value if complete else None,
+                    "profit": self.round.result.hands[index].profit if complete else None,
                 }
                 for index, hand in enumerate(self.round.hands)
             ],
             "available_actions": sorted(action.value for action in self.available_actions),
             "feedback": self.feedback.message,
+            "feedback_detail": {
+                "correct": self.feedback.correct, "illegal": self.feedback.illegal,
+                "chosen": self.feedback.chosen.value if self.feedback.chosen else None,
+                "recommendation": self.feedback.recommendation.action.value
+                if self.feedback.recommendation else None,
+            },
             "bankroll": self.bankroll,
             "stats": {
                 "decisions": self.stats.decisions,
@@ -299,6 +335,16 @@ class TrainerSession:
                 "accuracy": self.stats.accuracy,
                 "current_streak": self.stats.current_streak,
                 "best_streak": self.stats.best_streak,
+                "breakdown": [{
+                    "kind": kind, "decisions": self.stats.decisions_by_kind[kind],
+                    "correct": self.stats.correct_by_kind[kind],
+                    "accuracy": self.stats.accuracy_for(kind),
+                } for kind in ("hard", "soft", "pair")],
+                "missed_situations": [
+                    {"situation": situation, "count": count}
+                    for situation, count in self.stats.missed_situations.most_common(10)
+                ],
+                "hands": self.stats.hands,
                 "rounds": self.stats.rounds,
                 "wins": self.stats.wins,
                 "losses": self.stats.losses,

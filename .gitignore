@@ -9,3 +9,7 @@ dist/
 target/
 .idea/
 .vscode/
+node_modules/
+blackjack_analysis/web_static/
+frontend/test-results/
+frontend/playwright-report/
