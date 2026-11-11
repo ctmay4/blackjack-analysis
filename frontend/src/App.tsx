@@ -43,7 +43,14 @@ type Overlay =
 
 function Card({ data }: { data: CardData | null }) {
   if (!data)
-    return <div className="card back" role="img" aria-label="Face-down card" />;
+    return (
+      <div
+        key="back"
+        className="card back"
+        role="img"
+        aria-label="Face-down card"
+      />
+    );
   const suitNames: Record<string, string> = {
     "♥": "hearts",
     "♦": "diamonds",
@@ -52,6 +59,7 @@ function Card({ data }: { data: CardData | null }) {
   };
   return (
     <div
+      key="face"
       className={`card${["♥", "♦"].includes(data.suit) ? " red" : ""}`}
       role="img"
       aria-label={`${data.rank} of ${suitNames[data.suit] || "unspecified suit"}`}
@@ -847,7 +855,10 @@ export default function App() {
                       }
                     >
                       {state.dealer_cards.map((data, index) => (
-                        <Card key={index} data={data} />
+                        <Card
+                          key={`${state.round_number}-${index}`}
+                          data={data}
+                        />
                       ))}
                     </div>
                   </section>
@@ -885,7 +896,10 @@ export default function App() {
                             }
                           >
                             {hand.cards.map((data, cardIndex) => (
-                              <Card key={cardIndex} data={data} />
+                              <Card
+                                key={`${state.round_number}-${cardIndex}`}
+                                data={data}
+                              />
                             ))}
                           </div>
                           <div className="hand-bet">
@@ -921,7 +935,12 @@ export default function App() {
                       {feedbackTone === "mistake" ? "!" : complete ? "✓" : "↗"}
                     </span>
                     <div>
-                      <strong>{feedbackTitle}</strong>
+                      <strong
+                        key={`${state.round_number}-${feedbackTitle}-${state.feedback}`}
+                        className="feedback-message"
+                      >
+                        {feedbackTitle}
+                      </strong>
                       <p>{state.feedback}</p>
                     </div>
                   </div>

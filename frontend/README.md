@@ -60,6 +60,10 @@ Browser eviction/site-data deletion can remove both caches and saved practice.
   conservative validation, archival, and decision-weighted cumulative statistics.
 - `src/History.tsx`: read-only history/review dialog, mistake filtering, refresh,
   and confirmed history deletion, available before or during practice.
+- `src/HistoryCharts.tsx` / `src/history-charts.ts`: SVG cumulative accuracy and
+  settled-profit trends with an accessible exact-value table. Whole-session
+  counters (not retained review rounds) are accumulated chronologically;
+  unscored sessions have no accuracy until a scored decision exists.
 - `src/session-store.ts`: IndexedDB active-session/history store. Read/compare/write
   mutations happen in a single transaction across tabs. Promises resolve only
   after commit, never merely after an individual write request succeeds.
@@ -164,6 +168,11 @@ least 1280px and up to 1100px high use side-by-side hands and a keyboard-focusab
 scrolling statistics sidebar. Three-to-five-card hands fan without shrinking
 ranks; larger split groups/unusually long hands can grow naturally instead of
 being clipped. Tall desktops, tablets, and phones keep stacked hands.
+
+Card arrivals/reveals, feedback changes, dialogs, and history charts use brief
+presentation-only animations. They never delay actions or storage commits, and
+are disabled when the browser requests reduced motion. Card animations preserve
+the existing fan/layout transforms.
 
 Google Fonts are optional; system fallbacks work without them. After successful
 initial precaching, gameplay/charts and opening/reloading work offline. No

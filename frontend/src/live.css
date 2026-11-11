@@ -1,4 +1,42 @@
 /* Live application states layered over the approved visual mockup. */
+/* Animate presentation only: controls and committed game state never wait for
+   an animation. Individual translate preserves existing card/fan transforms. */
+@media (prefers-reduced-motion: no-preference) {
+  .play-surface .card {
+    animation: card-arrive 220ms ease-out;
+  }
+  .feedback-message {
+    display: block;
+    animation: feedback-appear 180ms ease-out;
+  }
+  dialog[open] {
+    animation: feedback-appear 160ms ease-out;
+  }
+  .player-hand {
+    transition:
+      opacity 180ms ease-out,
+      border-color 180ms ease-out;
+  }
+  @keyframes card-arrive {
+    from {
+      opacity: 0;
+      translate: 0 -12px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  @keyframes feedback-appear {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 .settings-fields {
   margin: 0;
   padding: 0;

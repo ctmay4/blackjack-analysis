@@ -4,6 +4,7 @@ import type { SessionHistory, SessionJournal } from "./session-history";
 import { REVIEW_ROUND_LIMIT } from "./session-history";
 import type { CardData } from "./engine/types";
 import "./history.css";
+import HistoryCharts from "./HistoryCharts";
 
 const percent = (correct: number, decisions: number) =>
   decisions ? `${Math.round((correct / decisions) * 100)}%` : "—";
@@ -257,6 +258,7 @@ export default function History({
                 Accuracy is weighted by decisions, not averaged across sessions.
                 Profit uses virtual money and excludes unfinished rounds.
               </p>
+              <HistoryCharts sessions={history.sessions} />
               {stats.breakdown.map((row) => (
                 <div className="breakdown-row" key={row.kind}>
                   <span>{row.kind} hands</span>

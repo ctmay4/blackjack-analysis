@@ -6,6 +6,10 @@ async function start(page: Page) {
   await page.getByRole("button", { name: "Start practice" }).click();
 }
 async function end(page: Page) {
+  // Pointer clicks return before the IndexedDB mutation necessarily commits.
+  await expect(
+    page.getByRole("button", { name: "Open saved history" }),
+  ).toBeEnabled();
   await page.keyboard.press("q");
   await page.getByRole("button", { name: "End session" }).click();
   await expect(
@@ -30,6 +34,16 @@ test("ended sessions survive reload and show cumulative progress and hand review
   await expect(page.getByLabel("Cumulative statistics")).toContainText(
     "1 ended sessions · 1 of 1 decisions correct · 100% accuracy",
   );
+  await expect(
+    page.getByRole("img", { name: "Cumulative accuracy", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "Cumulative settled profit", exact: true }),
+  ).toBeVisible();
+  await page.getByText("View progress data", { exact: true }).click();
+  await expect(
+    page.getByRole("region", { name: "Progress data", exact: true }),
+  ).toContainText("100.0%");
   await page.getByRole("button", { name: /Review session 1/ }).click();
   await expect(
     page.getByRole("heading", { name: "Session review", exact: true }),
@@ -60,6 +74,10 @@ test("replaced sessions retain correction attempts and support mistakes-only rev
   await page.getByLabel("Feedback mode").selectOption("correction");
   await page.getByRole("button", { name: "Start practice" }).click();
   await page.getByRole("button", { name: "Hit H", exact: true }).click();
+  await expect(page.locator(".feedback.mistake")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open saved history" }),
+  ).toBeEnabled();
   await page.reload();
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
   await page.getByRole("button", { name: "Open session settings" }).click();
@@ -103,6 +121,9 @@ test("history deletion requires confirmation and preserves active practice", asy
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Delete saved history" }).click();
   await expect(page.getByRole("dialog")).toContainText("No saved sessions yet");
+  await expect(
+    page.getByRole("region", { name: "Historical charts", exact: true }),
+  ).toHaveCount(0);
   expect(await readSaved(page)).toEqual(before);
   await page.keyboard.press("Escape");
   await end(page);
