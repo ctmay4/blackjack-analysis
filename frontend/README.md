@@ -29,6 +29,27 @@ The published trainer is https://ctmay4.github.io/blackjack-analysis/.
 The root README describes GitHub Pages deployment. No API URL or server-specific
 environment variables are required.
 
+## Offline / PWA
+
+Production builds use `vite-plugin-pwa` / Workbox to precache the app shell,
+bundled engine/tables, and icons. The manifest and worker scope use relative URLs
+for root hosting and repository subpaths. HTTPS or localhost is required; the
+development server does not register a worker. Test with build + preview.
+
+After **Ready for offline use on this device**, the same URL can be reopened
+offline, with or without browser installation. Use the browser's install menu,
+or Safari's Share → Add to Home Screen. Installation UI/support varies; installed
+window behavior still needs manual device coverage.
+
+`src/PwaStatus.tsx` reports readiness/errors and prompts for waiting updates.
+Updates are checked on navigation, returning to the app, and reconnecting.
+**Later** leaves the current version running; **Reload to update** activates the
+waiting worker and reloads open app tabs. Committed IndexedDB sessions/history
+are not cleared or migrated by the worker. Old precaches are cleaned on
+activation; unrelated sites on the same origin are outside the worker scope.
+External Google Fonts are not cached; offline system-font fallbacks are used.
+Browser eviction/site-data deletion can remove both caches and saved practice.
+
 ## Architecture
 
 - `src/engine/`: pure TypeScript game, strategy, trainer, settings, presentation
@@ -124,8 +145,9 @@ stale/duplicate tabs, save aborts, recovery, and validation boundaries.
 Playwright builds the production app and serves `dist/` on port 8765 using Vite
 preview. Tests exercise real browser gameplay/storage, refresh, keyboard focus,
 overlays, settings confirmation, feedback modes, splits/surrender, mobile and
-compact desktop layouts, storage errors/recovery, offline gameplay after load,
-and a repository-subpath static mount. Test code seeds browser entropy; it does
+compact desktop layouts, storage errors/recovery, offline gameplay/reload/fresh
+opening, and a real repository-subpath static mount with scoped service-worker,
+manifest/icons, and deferred-update checks. Test code seeds browser entropy; it does
 not replace the engine or depend on a backend. The five-card layout case uses an
 explicitly authored valid storage fixture, not a production fixture hook.
 
@@ -143,12 +165,12 @@ scrolling statistics sidebar. Three-to-five-card hands fan without shrinking
 ranks; larger split groups/unusually long hands can grow naturally instead of
 being clipped. Tall desktops, tablets, and phones keep stacked hands.
 
-Google Fonts are optional; system fallbacks work without them. Gameplay/chart
-operations work offline after the app loads, but offline opening/reloading isn't
-guaranteed until a service worker/PWA is added. No analytics are included.
+Google Fonts are optional; system fallbacks work without them. After successful
+initial precaching, gameplay/charts and opening/reloading work offline. No
+analytics are included.
 
 Pages publishing and session history/review are implemented. Remaining work:
-export/import backups, cross-session mistake drills, offline/PWA support, and
+export/import backups, cross-session mistake drills, and
 expanded Safari/Firefox, screen-reader, device, and performance coverage.
 
 CI and Pages use Ubuntu 24.04 with Node-24-compatible action releases. Build/test

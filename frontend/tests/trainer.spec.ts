@@ -23,7 +23,9 @@ test("real hand, settlement, next round, and refresh resume", async ({
   await expect(page.getByRole("img", { name: "Face-down card" })).toHaveCount(
     0,
   );
-  await expect(page.getByRole("status")).toContainText("On strategy");
+  await expect(page.locator('.feedback[role="status"]')).toContainText(
+    "On strategy",
+  );
   await page.reload();
   await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
   await page.getByRole("button", { name: "Next hand" }).click();
@@ -70,7 +72,9 @@ test("settings require confirmation and correction mode retries without playing"
     .getByRole("img")
     .count();
   await page.getByRole("button", { name: "Hit H", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Let’s try that again");
+  await expect(page.locator('.feedback[role="status"]')).toContainText(
+    "Let’s try that again",
+  );
   await expect(
     page.getByRole("region", { name: "Your hands" }).getByRole("img"),
   ).toHaveCount(before);
@@ -198,19 +202,21 @@ test("delayed feedback, surrender practice, and desktop layout", async ({
   await page.getByLabel("Practice focus").selectOption("soft");
   await page.getByRole("button", { name: "Start practice" }).click();
   await page.getByRole("button", { name: "Hit H", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator('.feedback[role="status"]')).toContainText(
     "Feedback after the round",
   );
   await expect(page.locator(".metric-note")).toContainText("0 of 0");
   const pending = await readSaved(page);
   await page.reload();
-  await expect(page.getByRole("status")).toContainText(
+  await expect(page.locator('.feedback[role="status"]')).toContainText(
     "Feedback after the round",
   );
   expect(await readSaved(page)).toEqual(pending);
   await expect(page.locator(".metric-note")).toContainText("0 of 0");
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Round complete");
+  await expect(page.locator('.feedback[role="status"]')).toContainText(
+    "Round complete",
+  );
   await page.getByRole("button", { name: "Open session settings" }).click();
   await page.getByLabel("Practice focus").selectOption("surrender");
   await expect(

@@ -71,13 +71,30 @@ that exact session without re-scoring choices or changing future shuffles.
   saves. No cloud backup or cross-device synchronization is provided yet.
 - Storage failures are reported rather than silently pretending progress was
   saved. Corrupt/future-version data is preserved until you explicitly discard it.
-- Once loaded, gameplay/charts need no connection. Opening/reloading the app
-  offline is not guaranteed yet; installable offline/PWA support is future work.
+- After the first online visit finishes offline setup, opening/reloading the app,
+  gameplay, charts, and local history work offline. Cached app files and saved
+  sessions can still be removed by browser eviction or clearing site data.
 
 The public UI snapshot masks the dealer hole card and pending teaching hints.
 The saved state contains the full local game: this is a practice tool, not a
 secure gambling or anti-cheating system. Google Fonts optionally load online;
 system-font fallbacks work without them. No analytics are included.
+
+## Offline use and installation
+
+Open the published site online once and wait for **Ready for offline use on this
+device**. You can then reopen the same URL without a connection. Installation is
+optional: use your browser's **Install app** option, or Safari's **Share → Add to
+Home Screen** on iPhone/iPad. Availability and wording vary by browser.
+
+Updates download when online and offer **Reload to update** or **Later**; they
+do not automatically interrupt practice. Applying an update reloads open app tabs
+and restores committed practice from IndexedDB. Installation is not a backup:
+data remains local to this browser/profile and origin.
+
+Offline/PWA features require HTTPS (or localhost) and a production build; they
+are disabled in the Vite development server. To test locally, build and use
+`npm run preview --prefix frontend`.
 
 ## GitHub Pages
 
@@ -139,7 +156,7 @@ The original visual mockup remains in `mockup/`.
 ## Next milestones
 
 - Cross-session mistake drills, export/import backups, and JSON/CSV exports.
-- Optional offline/PWA support, animations, and genuine historical charts.
+- Animations and genuine historical charts.
 - Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.
 - More browser/device/accessibility coverage, edge cases, benchmarks, screenshots,

@@ -1,0 +1,25 @@
+.pwa-status {
+  position: fixed;
+  z-index: 1000;
+  right: 1rem;
+  bottom: 1rem;
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid #8ae0c4;
+  border-radius: 12px;
+  background: #141c24;
+  color: #f0f5f4;
+  box-shadow: 0 4px 24px #0006;
+}
+.pwa-status p {
+  margin: 0 0 0.75rem;
+}
+.pwa-status button {
+  padding: 0.4rem 0.7rem;
+  margin-right: 0.5rem;
+  border: 1px solid #8ae0c4;
+  border-radius: 6px;
+  background: #153e34;
+  color: #f0f5f4;
+  cursor: pointer;
+}
