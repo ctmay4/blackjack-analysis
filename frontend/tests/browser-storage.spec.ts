@@ -1,4 +1,33 @@
 import { test, expect, readSaved, writeSaved } from "./helpers";
+import type { Page } from "@playwright/test";
+
+async function expectFavicon(page: Page, expectedPath: string) {
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "type",
+    "image/svg+xml",
+  );
+  const icon = await page.evaluate(async () => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')!;
+    const response = await fetch(link.href);
+    return {
+      path: new URL(link.href).pathname,
+      status: response.status,
+      type: response.headers.get("content-type"),
+      body: await response.text(),
+    };
+  });
+  expect(icon.path).toBe(expectedPath);
+  expect(icon.status).toBe(200);
+  expect(icon.type).toContain("image/svg+xml");
+  expect(icon.body).toContain("<svg");
+}
+
+test("favicon is explicitly linked and served at the site root", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expectFavicon(page, "/favicon.svg");
+});
 
 for (const damaged of ["future", "corrupt"] as const) {
   test(`${damaged} saved data is preserved until explicit recovery`, async ({
@@ -71,6 +100,7 @@ test("static build runs at a repository subpath and keeps home navigation there"
     await route.fulfill({ response: await route.fetch({ url: url.href }) });
   });
   await page.goto("/blackjack-analysis/");
+  await expectFavicon(page, "/blackjack-analysis/favicon.svg");
   await page.getByRole("button", { name: "Start practice" }).click();
   await expect(page.locator(".player-hand")).toBeVisible();
   await page.getByRole("button", { name: "Stand S", exact: true }).click();
