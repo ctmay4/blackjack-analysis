@@ -16,8 +16,11 @@
 }
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(ellipse at 45% 0%, #20313966, transparent 65%), var(--bg);
+  background-repeat: no-repeat;
   color: var(--text);
   font-family: var(--font);
   font-size: 14px;
