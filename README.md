@@ -40,6 +40,10 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   to review ended/replaced sessions, cumulative statistics, and mistakes.
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
 - Choose immediate feedback, require-correction, or delayed feedback.
+- **Frequently missed** drills opening-hand mistakes from saved sessions plus
+  mistakes scored during current practice. Targets are selected when starting or
+  replacing a session; new scores stay separate. Without usable mistakes, it
+  falls back to all hands. Recommendations always follow the current rules.
 - Changing settings requires confirmation before replacing the current session.
 
 Virtual money only. Bankroll does not restrict legal wagers. “Ideal” means the
@@ -155,8 +159,11 @@ The original visual mockup remains in `mockup/`.
 
 ## Next milestones
 
-- Cross-session mistake drills, export/import backups, and JSON/CSV exports.
-- Animations and genuine historical charts.
+Presentation-only animations and historical cumulative-accuracy/settled-profit
+charts are implemented, with reduced-motion support and an accessible exact-value
+table for the charts.
+
+- Export/import backups and JSON/CSV exports.
 - Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.
 - More browser/device/accessibility coverage, edge cases, benchmarks, screenshots,

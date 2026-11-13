@@ -93,11 +93,11 @@ it("keeps old state on save failures, never committing partially scored choices"
   const failedStore: SessionStore = {
     read: () => store.read(),
     readHistory: () => store.readHistory(),
-    change: (operation) =>
-      store.change((value, history) => {
-        operation(value, history);
+    change: (operation, includeArchives) =>
+      store.change((value, history, archives) => {
+        operation(value, history, archives);
         throw new StorageFailure();
-      }),
+      }, includeArchives),
   };
   const broken = new SessionController(failedStore, entropy);
   await expect(broken.choose(initial, "stand")).rejects.toMatchObject({

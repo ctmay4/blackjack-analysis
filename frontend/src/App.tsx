@@ -1083,7 +1083,7 @@ export default function App() {
                         {state.config.practice === "all"
                           ? "Build a well-rounded foundation"
                           : state.config.practice === "missed"
-                            ? "Opening misses from this session"
+                            ? "Opening misses from saved and current sessions"
                             : "One situation at a time"}
                       </p>
                     </div>

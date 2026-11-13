@@ -123,6 +123,10 @@ const checkpoint = z.strictObject({
   config: z.unknown(),
   randomState: z.number().int().min(0).max(0xffffffff),
   customShoe: z.boolean(),
+  drillSituations: z
+    .array(z.string().regex(/^(hard|soft|pair) \d{1,2} vs (A|[2-9]|10)$/))
+    .max(1000)
+    .optional(),
   shoe: z.array(card).max(416),
   round,
   stats,

@@ -178,8 +178,19 @@ Google Fonts are optional; system fallbacks work without them. After successful
 initial precaching, gameplay/charts and opening/reloading work offline. No
 analytics are included.
 
-Pages publishing and session history/review are implemented. Remaining work:
-export/import backups, cross-session mistake drills, and
+Frequently missed practice snapshots archived `openingMisses` when starting or
+replacing a session, including the session being replaced. Archives are read in
+the same transaction as session creation, not on ordinary choices. Targets are
+stored separately from scores in an optional checkpoint field; older saves still
+restore unchanged. Current-session opening mistakes also become targets. Only
+scored opening mistakes qualify, not abandoned delayed choices or later/split
+hand decisions. Unreachable targets under current rules are ignored; an empty
+pool falls back to all hands. Clearing history leaves active drill targets intact;
+future sessions no longer use the deleted archives. Targets are not weighted by
+mistake count and do not imply replaying exact cards or old recommendations.
+
+Pages publishing, session history/review, and cross-session mistake drills are
+implemented. Remaining work: export/import backups and
 expanded Safari/Firefox, screen-reader, device, and performance coverage.
 
 CI and Pages use Ubuntu 24.04 with Node-24-compatible action releases. Build/test

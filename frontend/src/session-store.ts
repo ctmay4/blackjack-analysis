@@ -30,7 +30,9 @@ export interface SessionStore {
     operation: (
       current: unknown | null,
       history: unknown | null,
+      archives: unknown[],
     ) => StoreChange<T>,
+    includeArchives?: boolean,
   ): Promise<T>;
 }
 
@@ -137,7 +139,9 @@ export class IndexedDbSessionStore implements SessionStore {
     operation: (
       current: unknown | null,
       history: unknown | null,
+      archives: unknown[],
     ) => StoreChange<T>,
+    includeArchives = false,
   ): Promise<T> {
     const db = await this.connect();
     return new Promise<T>((resolve, reject) => {
@@ -150,12 +154,31 @@ export class IndexedDbSessionStore implements SessionStore {
         let result: T, failure: unknown;
         transaction.oncomplete = () => resolve(result);
         transaction.onabort = () => reject(failure ?? new StorageFailure());
+        const archives: unknown[] = [];
+        if (includeArchives) {
+          const cursorRequest = store.openCursor();
+          cursorRequest.onsuccess = () => {
+            const cursor = cursorRequest.result;
+            if (cursor) {
+              if (
+                typeof cursor.key === "string" &&
+                cursor.key.startsWith(ARCHIVE_PREFIX)
+              )
+                archives.push(cursor.value);
+              cursor.continue();
+            } else apply();
+          };
+        }
         request.onsuccess = () => {
+          if (!includeArchives) apply();
+        };
+        const apply = () => {
           let next: StoreChange<T>;
           try {
             next = operation(
               request.result ?? null,
               historyRequest.result ?? null,
+              archives,
             );
           } catch (error) {
             failure = error;

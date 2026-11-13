@@ -138,6 +138,8 @@ interface Attempt {
 export interface TrainerOptions {
   shoe?: Shoe;
   random?: RandomSource;
+  /** Archived opening mistakes; kept separate from this session's scores. */
+  drillSituations?: string[];
   /** Prefer TrainerSession.restore() for this versioned hydration path. */
   checkpoint?: unknown;
 }
@@ -154,6 +156,7 @@ export class TrainerSession {
   private readonly customShoe: boolean;
   private attempts: Attempt[] = [];
   private recorded = false;
+  private readonly drillSituations: Set<string>;
 
   constructor(config: unknown = {}, options: TrainerOptions = {}) {
     const saved = Object.hasOwn(options, "checkpoint")
@@ -179,6 +182,27 @@ export class TrainerSession {
         doubleAfterSplit: this.configValue.rules.double_after_split,
       },
     );
+    // Rule changes can make archived categories unreachable (e.g. no splitting).
+    const archived = saved?.drillSituations ?? options.drillSituations ?? [];
+    const reachable = new Set<string>();
+    for (let dealer = 2; archived.length && dealer <= 11; dealer++)
+      for (let first = 2; first <= 11; first++)
+        for (let second = 2; second <= 11; second++) {
+          if (evaluateHand([first, second]).total >= 21) continue;
+          reachable.add(
+            this.situation(
+              this.strategy.recommend(dealer, [first, second], {
+                firstTurn: true,
+                canDouble: true,
+                canSplit:
+                  first === second && this.configValue.rules.max_splits > 0,
+              }),
+            ),
+          );
+        }
+    this.drillSituations = new Set(
+      archived.filter((key) => reachable.has(key)),
+    );
     this.bankroll = saved ? saved.bankroll : this.configValue.bankroll;
     if (saved) {
       this.game.round = saved.round;
@@ -200,6 +224,9 @@ export class TrainerSession {
       config: this.config,
       randomState: random.getState(),
       customShoe: this.customShoe,
+      ...(this.drillSituations.size
+        ? { drillSituations: [...this.drillSituations] }
+        : {}),
       shoe: this.game.shoe.snapshot(),
       round: structuredClone(this.round),
       stats: this.stats.checkpoint(),
@@ -337,13 +364,18 @@ export class TrainerSession {
     const practice = this.configValue.practice;
     if (
       practice === "all" ||
-      (practice === "missed" && this.stats.openingMisses.size === 0)
+      (practice === "missed" &&
+        this.stats.openingMisses.size === 0 &&
+        this.drillSituations.size === 0)
     )
       return true;
     const recommendation = this.recommendation;
     if (!recommendation) return false;
     if (practice === "missed")
-      return this.stats.openingMisses.has(this.situation(recommendation));
+      return (
+        this.stats.openingMisses.has(this.situation(recommendation)) ||
+        this.drillSituations.has(this.situation(recommendation))
+      );
     if (practice === "surrender") return recommendation.action === "surrender";
     return recommendation.handKind === practice;
   }

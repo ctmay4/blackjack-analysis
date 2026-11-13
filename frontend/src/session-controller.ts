@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TrainerSession } from "./engine/trainer";
+import { sessionConfig } from "./engine/session-config";
 import { seededRandom } from "./engine/cards";
 import type { TrainerCheckpoint } from "./engine/checkpoint";
 import type { Action } from "./engine/types";
@@ -21,7 +22,7 @@ import {
   parseArchive,
   recordReview,
 } from "./session-history";
-import type { SessionHistory } from "./session-history";
+import type { SessionHistory, SessionJournal } from "./session-history";
 import type { SessionStore } from "./session-store";
 
 export type SessionErrorCode =
@@ -148,9 +149,22 @@ export class SessionController {
       );
     }
   }
-  private create(config: unknown): TrainerSession {
+  private create(
+    config: unknown,
+    sessions: SessionJournal[] = [],
+  ): TrainerSession {
     return new TrainerSession(config, {
       random: seededRandom(this.entropy.seed()),
+      drillSituations:
+        sessionConfig(config).practice === "missed"
+          ? [
+              ...new Set(
+                sessions.flatMap((session) =>
+                  session.stats.openingMisses.map(([key]) => key),
+                ),
+              ),
+            ]
+          : [],
     });
   }
   load(): Promise<Snapshot | null> {
@@ -161,39 +175,49 @@ export class SessionController {
   }
   start(config: unknown): Promise<Snapshot> {
     return this.run(() =>
-      this.store.change((value, rawHistory) => {
-        if (value !== null) {
-          current(value);
-          throw new SessionError(
-            "stale",
-            "A session already exists. The latest state has been loaded.",
-          );
-        }
-        const history = parseHistory(rawHistory);
-        if (history.active)
-          throw new HistoryFailure(
-            "corrupt",
-            "Saved history has an orphaned active session. It has not been changed. Delete saved history explicitly to recover.",
-          );
-        const next = {
-          id: this.entropy.id(),
-          revision: 0,
-          session: this.create(config),
-        };
-        history.active = beginJournal(next.id, next.session, this.now());
-        recordReview(history.active, next.session);
-        return { value: saved(next), result: snapshot(next), history };
-      }),
+      this.store.change(
+        (value, rawHistory, archives) => {
+          if (value !== null) {
+            current(value);
+            throw new SessionError(
+              "stale",
+              "A session already exists. The latest state has been loaded.",
+            );
+          }
+          const history = parseHistory(rawHistory);
+          if (history.active)
+            throw new HistoryFailure(
+              "corrupt",
+              "Saved history has an orphaned active session. It has not been changed. Delete saved history explicitly to recover.",
+            );
+          const next = {
+            id: this.entropy.id(),
+            revision: 0,
+            session: this.create(config, [
+              ...history.sessions,
+              ...archives.map(parseArchive),
+            ]),
+          };
+          history.active = beginJournal(next.id, next.session, this.now());
+          recordReview(history.active, next.session);
+          return { value: saved(next), result: snapshot(next), history };
+        },
+        sessionConfig(config).practice === "missed",
+      ),
     );
   }
   private update(
     token: SessionToken,
-    operation: (session: TrainerSession) => TrainerSession,
+    operation: (
+      session: TrainerSession,
+      sessions: SessionJournal[],
+    ) => TrainerSession,
     replaceId = false,
     action?: Action,
+    includeArchives = false,
   ): Promise<Snapshot> {
     return this.run(() =>
-      this.store.change((value, rawHistory) => {
+      this.store.change((value, rawHistory, archives) => {
         const before = current(value);
         check(before, token);
         if (before.revision === Number.MAX_SAFE_INTEGER)
@@ -214,7 +238,12 @@ export class SessionController {
         const next = {
           id: replaceId ? this.entropy.id() : before.id,
           revision: before.revision + 1,
-          session: operation(before.session),
+          session: operation(
+            before.session,
+            includeArchives
+              ? [...history.sessions, ...archives.map(parseArchive), journal]
+              : [],
+          ),
         };
         let archive;
         if (replaceId) {
@@ -230,7 +259,7 @@ export class SessionController {
         history.active.revision = next.revision;
         recordReview(history.active, next.session, attempt);
         return { value: saved(next), result: snapshot(next), history, archive };
-      }),
+      }, includeArchives),
     );
   }
   choose(token: SessionToken, action: Action | "next"): Promise<Snapshot> {
@@ -246,7 +275,15 @@ export class SessionController {
     );
   }
   reset(token: SessionToken, config: unknown): Promise<Snapshot> {
-    return this.update(token, () => this.create(config), true);
+    return this.run(() =>
+      this.update(
+        token,
+        (_session, sessions) => this.create(config, sessions),
+        true,
+        undefined,
+        sessionConfig(config).practice === "missed",
+      ),
+    );
   }
   end(token: SessionToken): Promise<null> {
     return this.run(() =>
