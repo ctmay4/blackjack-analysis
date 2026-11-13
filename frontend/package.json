@@ -12,8 +12,10 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "npm run build && playwright test",
     "test:unit": "vitest run --config vitest.config.ts",
-    "format": "prettier --write src tests/*.ts *.ts *.json index.html",
-    "format:check": "prettier --check src tests/*.ts *.ts *.json index.html"
+    "bench": "vitest bench --run src/engine/release.bench.ts",
+    "check:build": "node scripts/check-build.mjs",
+    "format": "prettier --write src tests/*.ts scripts/*.mjs *.ts *.json index.html",
+    "format:check": "prettier --check src tests/*.ts scripts/*.mjs *.ts *.json index.html"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -21,6 +23,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.51.0",
     "@types/node": "^22.20.5",
     "@types/react": "^19.0.0",

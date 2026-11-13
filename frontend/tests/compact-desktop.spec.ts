@@ -145,27 +145,30 @@ test("five-card hands keep full-size cards and readable rank corners", async ({
   await page.reload();
   await expect(page.locator(".player-hand .card")).toHaveCount(5);
   await expectVisibleGameplay(page);
-  const readable = await page
-    .locator(".play-surface .cards")
-    .evaluateAll((hands) =>
-      hands.every((hand) => {
-        const cards = [...hand.querySelectorAll(".card")];
-        return cards.every((card, index) => {
-          const bounds = card.getBoundingClientRect();
-          const corner = card
-            .querySelector(".card-corner")!
-            .getBoundingClientRect();
-          const next = cards[index + 1]?.getBoundingClientRect();
-          return (
-            bounds.width >= 104 &&
-            bounds.height >= 148 &&
-            (!next || corner.right <= next.left) &&
-            bounds.right <= hand.getBoundingClientRect().right + 1
-          );
-        });
-      }),
-    );
-  expect(readable).toBe(true);
+  // Card entrance transforms briefly change geometry after reload. Retry the
+  // actual layout assertion rather than sampling an animation frame once.
+  await expect
+    .poll(() =>
+      page.locator(".play-surface .cards").evaluateAll((hands) =>
+        hands.every((hand) => {
+          const cards = [...hand.querySelectorAll(".card")];
+          return cards.every((card, index) => {
+            const bounds = card.getBoundingClientRect();
+            const corner = card
+              .querySelector(".card-corner")!
+              .getBoundingClientRect();
+            const next = cards[index + 1]?.getBoundingClientRect();
+            return (
+              bounds.width >= 104 &&
+              bounds.height >= 148 &&
+              (!next || corner.right <= next.left) &&
+              bounds.right <= hand.getBoundingClientRect().right + 1
+            );
+          });
+        }),
+      ),
+    )
+    .toBe(true);
   await page.screenshot({
     path: "test-results/compact-long-hands.png",
     fullPage: true,

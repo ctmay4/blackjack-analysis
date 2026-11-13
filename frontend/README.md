@@ -136,7 +136,7 @@ practice app, not an anti-cheating or real-money gambling system.
 npm run test:unit --prefix frontend
 npm run format:check --prefix frontend
 cd frontend
-npx playwright install chromium
+npx playwright install --with-deps chromium firefox webkit
 npm test
 ```
 
@@ -156,7 +156,11 @@ not replace the engine or depend on a backend. The five-card layout case uses an
 explicitly authored valid storage fixture, not a production fixture hook.
 
 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` can point to an installed Chromium binary.
-Screenshots/traces are in `test-results/` (ignored). CI runs Node/browser tests
+Screenshots/traces are in `test-results/` and the HTML report is in
+`playwright-report/` (both ignored). CI retains them even on successful runs.
+See [release sign-off](RELEASE.md) for the browser matrix, axe coverage, performance
+budgets/benchmarks, known verification gaps, and manual device/accessibility checks.
+CI runs Node/browser tests
 using Node only. Frozen reference fingerprints and coverage counts are checked
 in the unit suite; no generator or Python environment is needed. See
 [fixture provenance](src/engine/fixtures/README.md) before changing a baseline.

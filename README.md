@@ -120,7 +120,8 @@ Deployment automation is in `.github/workflows/pages.yml`. For a fresh deploymen
 1. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
 2. Push the changes to `master`, or manually run the Pages workflow on `master`.
 3. The workflow installs Node dependencies, checks formatting/unit tests, runs
-   Chromium tests against the static build, and deploys only `frontend/dist/`.
+   cross-browser tests and build-size checks against the static build, and deploys
+   only `frontend/dist/`.
 
 The site becomes available after a successful **Deploy browser trainer to GitHub
 Pages** workflow run. Check the repository's **Actions** tab for deployment status.
@@ -134,7 +135,7 @@ requests run CI without publishing the live site.
 ```sh
 npm run test:unit --prefix frontend
 cd frontend
-npx playwright install chromium
+npx playwright install --with-deps chromium firefox webkit
 npm test
 ```
 
@@ -178,8 +179,12 @@ Remaining work:
 
 - Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.
-- More browser/device/accessibility coverage, edge cases, benchmarks, screenshots,
-  and an initial release.
+- Complete the real-device/screen-reader checks and initial release sign-off in
+  [`frontend/RELEASE.md`](frontend/RELEASE.md). Automated release hardening now
+  includes cross-browser projects, WCAG scans, large-text/reflow and duplicate-click
+  checks, long-session checkpoint stress coverage, build-size budgets, benchmarks,
+  and screenshot artifacts. WebKit execution and the documented Firefox audit gap
+  still require verification; this is not a claim of completed release sign-off.
 
 Strategy tables target multi-deck play; a deck setting does not imply a dedicated
 single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural. H17/S17,
