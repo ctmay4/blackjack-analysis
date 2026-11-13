@@ -27,6 +27,26 @@ export const test = base.extend<{ seeded: void }>({
 });
 export { expect };
 
+export async function startPractice(page: Page) {
+  // On narrow screens the asynchronous offline-ready notice can appear
+  // between pointerdown and pointerup over Start practice, cancelling its click.
+  // Wait for and dismiss the real notice, rather than retrying a mutation.
+  const availability = page.getByRole("complementary", {
+    name: "App availability",
+  });
+  await expect(availability.getByRole("status")).toHaveText(
+    "Ready for offline use on this device.",
+  );
+  await availability
+    .getByRole("button", { name: "Dismiss", exact: true })
+    .click();
+  await expect(availability).toHaveCount(0);
+  await page.getByRole("button", { name: "Start practice" }).click();
+  await expect(
+    page.getByRole("region", { name: "Blackjack practice table" }),
+  ).toBeVisible();
+}
+
 export async function readSaved(page: Page): Promise<SavedSession | null> {
   return page.evaluate(
     ({ dbName, store, key }) =>

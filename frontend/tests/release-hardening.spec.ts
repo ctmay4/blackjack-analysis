@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { test, expect, readSaved } from "./helpers";
+import { test, expect, readSaved, startPractice } from "./helpers";
 import type { Page } from "@playwright/test";
 
 test.use({ reducedMotion: "reduce" });
@@ -20,7 +20,7 @@ test("WCAG checks cover setup, gameplay, and every overlay", async ({
     page.getByRole("button", { name: "Start practice" }),
   ).toBeEnabled();
   await accessible(page);
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
   await expect(page.locator(".player-hand")).toBeVisible();
   await accessible(page);
   for (const name of [
@@ -44,7 +44,7 @@ test("modal traps keyboard focus, ignores game shortcuts, and restores focus", a
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
   const opener = page.getByRole("button", { name: "Open session settings" });
   await opener.click();
   const before = await readSaved(page);
@@ -69,9 +69,12 @@ test("320px reflow and enlarged text keep setup, play, and history usable", asyn
 }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto("/");
+  // Audit narrow-screen styles too: desktop overrides can hide mobile contrast
+  // failures, including the action-footer text.
+  await startPractice(page);
+  await accessible(page);
   // Text-only enlargement complements narrow viewport coverage (not browser zoom).
   await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
-  await page.getByRole("button", { name: "Start practice" }).click();
   await expect(page.locator(".player-hand")).toBeVisible();
   expect(
     await page.evaluate(
@@ -102,7 +105,7 @@ test("populated history, charts, and review are accessible with release screensh
     "Playwright Firefox 159 crashes during axe scans of populated SVG history; functional history coverage runs separately.",
   );
   await page.goto("/");
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
   await expect(page.locator(".player-hand")).toBeVisible();
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -136,7 +139,7 @@ test("populated history, charts, and review are accessible with release screensh
 
 test("double activation cannot score or advance twice", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
   const before = await readSaved(page);
   await page
     .getByRole("button", { name: "Stand S", exact: true })

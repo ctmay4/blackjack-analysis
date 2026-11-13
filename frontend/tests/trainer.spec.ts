@@ -1,9 +1,9 @@
-import { test, expect, readSaved } from "./helpers";
+import { test, expect, readSaved, startPractice } from "./helpers";
 import type { Page } from "@playwright/test";
 
 async function start(page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
   await expect(
     page.getByRole("region", { name: "Blackjack practice table" }),
   ).toBeVisible();
@@ -88,7 +88,7 @@ test("mobile pair practice and splits fit without horizontal page overflow", asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByLabel("Practice focus").selectOption("pair");
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
   await page.getByRole("button", { name: "Split P", exact: true }).click();
   await expect(page.locator(".player-hand")).toHaveCount(2);
   await expect(page.locator(".split-active")).toHaveCount(1);

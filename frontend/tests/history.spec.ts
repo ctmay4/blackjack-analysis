@@ -1,9 +1,9 @@
-import { test, expect, readSaved } from "./helpers";
+import { test, expect, readSaved, startPractice } from "./helpers";
 import type { Page } from "@playwright/test";
 
 async function start(page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: "Start practice" }).click();
+  await startPractice(page);
 }
 async function end(page: Page) {
   // Pointer clicks return before the IndexedDB mutation necessarily commits.
@@ -246,7 +246,7 @@ for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/");
     await page.getByLabel("Feedback mode").selectOption("correction");
-    await page.getByRole("button", { name: "Start practice" }).click();
+    await startPractice(page);
     await page.getByRole("button", { name: "Hit H", exact: true }).click();
     await end(page);
     await openHistory(page);
