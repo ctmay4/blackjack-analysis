@@ -1246,7 +1246,13 @@ export default function App() {
                     ))}
                   </div>
                   {chart.map((section) => (
-                    <div key={section.name} className="chart-scroll">
+                    <div
+                      key={section.name}
+                      className="chart-scroll"
+                      role="region"
+                      aria-label={`${section.name} strategy chart`}
+                      tabIndex={0}
+                    >
                       <table className="strategy-chart">
                         <caption>
                           {section.name} — player hand versus dealer upcard

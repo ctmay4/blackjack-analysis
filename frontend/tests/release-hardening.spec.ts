@@ -33,8 +33,18 @@ test("WCAG checks cover setup, gameplay, and every overlay", async ({
   ]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
-    if (name === "Open strategy chart")
+    if (name === "Open strategy chart") {
       await expect(page.getByRole("table")).toHaveCount(3);
+      for (const section of ["Hard", "Soft", "Pairs"]) {
+        const region = page.getByRole("region", {
+          name: `${section} strategy chart`,
+          exact: true,
+        });
+        await expect(region).toHaveAttribute("tabindex", "0");
+        await region.focus();
+        await expect(region).toBeFocused();
+      }
+    }
     await accessible(page);
     await page.getByRole("button", { name: "Close overlay" }).click();
   }
