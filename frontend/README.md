@@ -190,8 +190,16 @@ future sessions no longer use the deleted archives. Targets are not weighted by
 mistake count and do not imply replaying exact cards or old recommendations.
 
 Pages publishing, session history/review, and cross-session mistake drills are
-implemented. Remaining work: export/import backups and
-expanded Safari/Firefox, screen-reader, device, and performance coverage.
+implemented. Full JSON backup/restore and JSON/CSV history exports are available
+in Saved history. Backups include active checkpoints/RNG, journals and all archives;
+restore validates before atomically replacing all local data and assigns a fresh
+active identity to reject stale-tab actions. Restore does not merge; download a
+backup first and reload other tabs afterward. Files are limited to 25 MiB on
+import. History JSON is a review report, while CSV contains ended-session
+summaries (accuracy as a fraction, settled profit); neither is a restore format.
+CSV text fields are quoted and spreadsheet-formula prefixes neutralized.
+Remaining work includes expanded Safari/Firefox, screen-reader, device, and
+performance coverage.
 
 CI and Pages use Ubuntu 24.04 with Node-24-compatible action releases. Build/test
 commands explicitly use Node 22; action runtimes are separate from that toolchain.

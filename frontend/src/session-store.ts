@@ -10,6 +10,7 @@ export interface StoreChange<T> {
   history?: unknown;
   archive?: { id: string; value: unknown };
   clearArchives?: boolean;
+  restoredArchives?: { id: string; value: unknown }[];
 }
 export interface HistoryRead {
   history: unknown | null;
@@ -197,7 +198,11 @@ export class IndexedDbSessionStore implements SessionStore {
               const cursorRequest = store.openCursor();
               cursorRequest.onsuccess = () => {
                 const cursor = cursorRequest.result;
-                if (!cursor) return;
+                if (!cursor) {
+                  for (const archive of next.restoredArchives ?? [])
+                    store.add(archive.value, ARCHIVE_PREFIX + archive.id);
+                  return;
+                }
                 if (
                   typeof cursor.key === "string" &&
                   cursor.key.startsWith(ARCHIVE_PREFIX)

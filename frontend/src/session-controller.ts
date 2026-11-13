@@ -318,6 +318,104 @@ export class SessionController {
       };
     });
   }
+  /** Consistent snapshot of all local practice data, including hidden cards. */
+  backup(): Promise<string> {
+    return this.run(() =>
+      this.store.change((value, rawHistory, archives) => {
+        const active = value === null ? null : decode(value);
+        const history = parseHistory(rawHistory);
+        history.sessions.push(...archives.map(parseArchive));
+        if (active) {
+          history.active = activeJournal(
+            history,
+            active.id,
+            active.session,
+            this.now(),
+            active.revision,
+          );
+          recordReview(history.active, active.session);
+        } else if (history.active) {
+          throw new Error(
+            "Saved history has an orphaned active session. No backup was created.",
+          );
+        }
+        parseHistory(history);
+        return {
+          value,
+          result: JSON.stringify(
+            {
+              format: "blackjack-studio-backup",
+              version: 1,
+              exportedAt: this.now(),
+              active: value,
+              history,
+            },
+            null,
+            2,
+          ),
+        };
+      }, true),
+    );
+  }
+  /** Explicit replacement: validation and writes either all succeed or do nothing. */
+  restoreBackup(text: string): Promise<null> {
+    return this.run(async () => {
+      if (new TextEncoder().encode(text).length > 25 * 1024 * 1024)
+        throw new Error("Backup exceeds the 25 MiB limit.");
+      const backup = z
+        .strictObject({
+          format: z.literal("blackjack-studio-backup"),
+          version: z.literal(1),
+          exportedAt: z.number().int().nonnegative().max(8640000000000000),
+          active: z.unknown(),
+          history: z.unknown(),
+        })
+        .parse(JSON.parse(text));
+      if (backup.active === undefined || backup.history == null)
+        throw new Error("Backup is missing practice data.");
+      const active = backup.active === null ? null : decode(backup.active);
+      const history = parseHistory(backup.history);
+      if (
+        history.active &&
+        (!active ||
+          history.active.id !== active.id ||
+          history.active.revision !== active.revision)
+      )
+        throw new Error("Backup active practice and history do not match.");
+      if (
+        active &&
+        history.active &&
+        (JSON.stringify(history.active.config) !==
+          JSON.stringify(active.session.config) ||
+          JSON.stringify(history.active.stats) !==
+            JSON.stringify(active.session.stats.checkpoint()) ||
+          history.active.bankroll !== active.session.bankroll)
+      )
+        throw new Error("Backup active scores and history do not match.");
+      // A fresh identity prevents stale tabs replaying actions against restored data.
+      if (active) {
+        active.id = this.entropy.id();
+        active.revision = 0;
+        if (history.active) {
+          history.active.id = active.id;
+          history.active.revision = 0;
+        }
+      }
+      parseHistory(history);
+      const restoredArchives = history.sessions.map((session) => ({
+        id: session.id,
+        value: { version: 1, session },
+      }));
+      history.sessions = [];
+      return this.store.change(() => ({
+        value: active ? saved(active) : null,
+        history,
+        clearArchives: true,
+        restoredArchives,
+        result: null,
+      }));
+    });
+  }
   /** Explicit deletion, never changes the active game or its score. */
   clearHistory(): Promise<null> {
     return this.run(() =>

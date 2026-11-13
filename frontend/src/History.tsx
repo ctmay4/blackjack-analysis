@@ -5,6 +5,7 @@ import { REVIEW_ROUND_LIMIT } from "./session-history";
 import type { CardData } from "./engine/types";
 import "./history.css";
 import HistoryCharts from "./HistoryCharts";
+import BackupTools from "./BackupTools";
 
 const percent = (correct: number, decisions: number) =>
   decisions ? `${Math.round((correct / decisions) * 100)}%` : "—";
@@ -199,6 +200,13 @@ export default function History({
   const stats = history?.totals.stats;
   return (
     <div className="history-panel">
+      <BackupTools
+        onRestore={async () => {
+          setSelected(null);
+          await onClear?.();
+          await refresh();
+        }}
+      />
       <p className="dialog-intro">
         Ended and replaced sessions saved in this browser. Active-session scores
         are excluded until you end or replace the session. Clearing site data

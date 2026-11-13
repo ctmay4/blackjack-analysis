@@ -71,8 +71,16 @@ that exact session without re-scoring choices or changing future shuffles.
 - Existing saves resume unchanged. Their full scores are retained, but earlier
   choices cannot be reconstructed; review labels this partial coverage. History
   deletion requires confirmation and keeps active practice intact.
+- Use **Saved history → Download backup** to save active practice and all history
+  as JSON. **Restore backup** validates the file (maximum 25 MiB), then atomically
+  replaces local practice/history after confirmation; it does not merge. Download
+  a current backup first. Reload other open tabs after restoring.
+- History JSON exports include retained reviews; CSV exports contain ended-session
+  summaries with exact accuracy fractions and settled profit. These are reports,
+  not restorable backups. Backup files include hidden cards; keep them private.
 - Clearing site data, browser eviction, or leaving private browsing can remove
-  saves. No cloud backup or cross-device synchronization is provided yet.
+  saves. Downloaded backups can be restored on another device/origin, but there
+  is no cloud backup or automatic cross-device synchronization.
 - Storage failures are reported rather than silently pretending progress was
   saved. Corrupt/future-version data is preserved until you explicitly discard it.
 - After the first online visit finishes offline setup, opening/reloading the app,
@@ -163,7 +171,11 @@ Presentation-only animations and historical cumulative-accuracy/settled-profit
 charts are implemented, with reduced-motion support and an accessible exact-value
 table for the charts.
 
-- Export/import backups and JSON/CSV exports.
+Full JSON backup/restore and JSON/CSV history exports are implemented in
+**Saved history → Backup and export**.
+
+Remaining work:
+
 - Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.
 - More browser/device/accessibility coverage, edge cases, benchmarks, screenshots,
