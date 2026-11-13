@@ -136,7 +136,26 @@ test.describe("repository-scoped PWA", () => {
       { status: 200, type: "image/png" },
     ]);
     await page.getByRole("button", { name: "Start practice" }).click();
+    await page.getByRole("button", { name: "Stand S", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
+    await page.getByRole("button", { name: "View session summary ↗" }).click();
+    await page
+      .getByRole("button", { name: "End session", exact: false })
+      .click();
+    await page.getByRole("button", { name: "Start practice" }).click();
+    // Keep a second live tab open while an update waits. Both tabs must keep
+    // committed practice/history and adopt the worker only after confirmation.
+    const sibling = await context.newPage();
+    await sibling.goto(url);
+    await readyOffline(sibling);
+    await page.getByRole("button", { name: "Stand S", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
+    await sibling.reload();
+    await expect(
+      sibling.getByRole("button", { name: "Next hand" }),
+    ).toBeVisible();
     const saved = await readSaved(page);
+    expect(await readSaved(sibling)).toEqual(saved);
     generation++;
     await page.evaluate(async () => {
       const registration = await navigator.serviceWorker.ready;
@@ -151,7 +170,22 @@ test.describe("repository-scoped PWA", () => {
     await expect(
       page.getByRole("button", { name: "Reload to update" }),
     ).toBeVisible();
+    const siblingReload = sibling.waitForEvent("framenavigated", {
+      predicate: (frame) => frame === sibling.mainFrame(),
+    });
     await page.getByRole("button", { name: "Reload to update" }).click();
+    await siblingReload;
+    await expect(
+      sibling.getByRole("button", { name: "Next hand" }),
+    ).toBeVisible();
+    expect(await readSaved(sibling)).toEqual(saved);
+    for (const tab of [page, sibling]) {
+      await tab.getByRole("button", { name: "Open saved history" }).click();
+      await expect(tab.getByLabel("Cumulative statistics")).toContainText(
+        "1 ended sessions",
+      );
+      await tab.keyboard.press("Escape");
+    }
     await expect(
       page.getByRole("button", { name: "Reload to update" }),
     ).toHaveCount(0);

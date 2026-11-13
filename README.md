@@ -183,8 +183,11 @@ Remaining work:
   [`frontend/RELEASE.md`](frontend/RELEASE.md). Automated release hardening now
   includes cross-browser projects, WCAG scans, large-text/reflow and duplicate-click
   checks, long-session checkpoint stress coverage, build-size budgets, benchmarks,
-  and screenshot artifacts. WebKit execution and the documented Firefox audit gap
-  still require verification; this is not a claim of completed release sign-off.
+  and screenshot artifacts. Baseline CI passed desktop/iPhone-emulated WebKit,
+  and responsive practice screenshots have been reviewed. Follow-up checks cover
+  isolated-profile backup transfer, multi-tab updates, and forced colors; those
+  changes still need full CI verification. Real-device/assistive-technology checks
+  and the documented Firefox audit gap remain; release sign-off is not complete.
 
 Strategy tables target multi-deck play; a deck setting does not imply a dedicated
 single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural. H17/S17,

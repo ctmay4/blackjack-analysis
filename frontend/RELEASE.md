@@ -57,12 +57,28 @@ Node, and background load affect these figures; compare on the same machine.
 ## Verification record and known gaps
 
 - Local unit suite: 468 tests, including the stress workload.
-- Local Chromium and Firefox browser run: 78 passed, one explicitly skipped
-  Firefox audit (below). Formatting, production build, size budgets, and production
-  dependency audit pass. WebKit is tracked separately from these results.
+- Baseline CI verified on 2026-11-13 at `00e24b9`: [run 43431265954](https://github.com/ctmay4/blackjack-analysis/actions/runs/43431265954)
+  passed 107 browser tests with one known Firefox audit skipped. This includes
+  desktop WebKit and iPhone 13 WebKit emulation. The Pages workflow also passed
+  at that commit. These results do not cover subsequent working-tree changes.
+- Local follow-up: 468 unit tests and 82 Chromium/Firefox browser tests pass,
+  with the same Firefox audit skipped. Production build and formatting pass.
+  Added isolated-profile backup transfer (archives, exact state, future play),
+  multi-tab deferred updates (reload, committed scores, retained history), and
+  forced-colors keyboard/focus checks. Forced colors revealed an intrusive table
+  watermark and missing card boundaries in Firefox; CSS now hides the watermark
+  and gives cards explicit system-color borders in that mode.
+- Reviewed all nine baseline practice screenshots: 390/768/1440px in Chromium,
+  desktop WebKit, and iPhone-emulated WebKit. No obvious clipping/overlap;
+  narrow layouts stack and scroll, desktop shows hands side by side. This is a
+  visual review of practice views, not a real-device or all-state certification.
 - WebKit browser binaries download locally, but this development host lacks its
-  shared libraries and passwordless sudo. Desktop/iPhone WebKit must pass the
-  Ubuntu CI matrix before publishing. They have **not** been verified locally.
+  shared libraries and passwordless sudo. A local full-matrix attempt passed
+  78 tests and skipped one; 29 WebKit tests could not launch. Baseline CI above
+  supplies WebKit evidence; the new tests/CSS still need an Ubuntu CI run.
+- Forced-colors emulation runs on Chromium/Firefox only; its new test is explicitly
+  skipped on WebKit, which does not emulate that media feature. Actual OS high
+  contrast and assistive technology checks remain manual.
 - Playwright Firefox 159 reproducibly crashes during axe analysis of populated
   SVG history, even with color-contrast disabled and when run alone. That one
   audit test is explicitly skipped on Firefox; equivalent Chromium audits and
@@ -76,8 +92,10 @@ Node, and background load affect these figures; compare on the same machine.
 
 ## Manual release checklist (not yet signed off)
 
-- [ ] CI passes Chromium, Firefox, desktop WebKit, and iPhone-emulated WebKit.
-- [ ] Review desktop/tablet/phone screenshots and failed-test traces, if any.
+- [x] Baseline CI passes Chromium, Firefox, desktop WebKit, and iPhone-emulated
+      WebKit at `00e24b9` (linked above).
+- [x] Review baseline desktop/tablet/phone practice screenshots (linked CI artifacts).
+- [ ] Rerun the complete CI matrix and review artifacts after follow-up test/CSS changes.
 - [ ] Real Safari on iPhone/iPad and Chrome on Android: portrait/landscape,
       touch actions, scrolling, install, offline relaunch, and deferred update.
 - [ ] Real desktop Chrome/Firefox/Safari: 200%/400% browser zoom, text scaling,
@@ -90,6 +108,32 @@ Node, and background load affect these figures; compare on the same machine.
 - [ ] Stage an update with active practice in multiple tabs; defer then apply it,
       verify committed scores/history survive. Check installed-window behavior.
 - [ ] Test the published repository-subpath URL, then tag/publish the initial release.
+
+## Real-device / assistive-technology handoff
+
+No physical iOS/Android devices, NVDA, or VoiceOver were available for this pass.
+Record tester, date, OS/browser/AT versions, URL/commit, and result for each check;
+do not substitute Playwright emulation for these steps.
+
+1. On iOS Safari and Android Chrome, start practice, rotate both ways, exercise
+   touch actions and scroll every overlay. Install via the platform UI, wait for
+   offline readiness, close the app, disconnect, and relaunch the installed app.
+   Play, view charts/history, reconnect, then check a deferred app update.
+2. On desktop Chrome/Firefox/Safari, use actual browser zoom at 200% and 400%
+   (not CSS zoom or text-only enlargement). Tab/Shift+Tab through setup, gameplay,
+   and dialogs; check visible focus, Escape/return focus, scrollable charts, and
+   that actions remain reachable without horizontal page scrolling.
+3. With NVDA (Firefox/Chrome) and VoiceOver (Safari), navigate labels, card names,
+   changing feedback, dialogs, history/review, and the charts' exact-value table.
+   Verify meaningful announcements without exposing the hidden dealer card.
+4. Toggle OS reduced motion and high contrast; block fonts/disconnect and verify
+   fallback text. Inspect card boundaries, disabled actions, and focus visibility.
+5. Export active practice plus at least one ended session; transfer the file to a
+   second physical device. Cancel a restore first, then confirm replacement.
+   Verify history, scores, ongoing practice, warnings, and persistence on relaunch.
+6. With practice/history saved and two tabs plus an installed window open, stage
+   a new build. Choose Later and continue playing; then apply the update. Confirm
+   all windows reload without losing committed scores/history or replaying actions.
 
 Automated axe checks cannot certify accessibility. Emulated WebKit is not real
 Safari/iOS, and build budgets/engine benchmarks do not certify low-end device

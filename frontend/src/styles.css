@@ -1402,6 +1402,15 @@ summary {
     font-size: 22px;
   }
 }
+@media (forced-colors: active) {
+  .table-watermark {
+    display: none;
+  }
+  .card {
+    border: 1px solid CanvasText;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

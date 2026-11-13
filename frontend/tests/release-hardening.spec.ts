@@ -147,6 +147,42 @@ test("populated history, charts, and review are accessible with release screensh
   await accessible(page);
 });
 
+test("forced colors retain keyboard focus and usable practice controls", async ({
+  page,
+  browserName,
+}, testInfo) => {
+  test.skip(browserName === "webkit", "WebKit does not emulate forced-colors.");
+  await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+  await page.goto("/");
+  await startPractice(page);
+  expect(
+    await page.evaluate(() => matchMedia("(forced-colors: active)").matches),
+  ).toBe(true);
+  await expect(page.locator(".table-watermark")).toBeHidden();
+  await expect(page.locator(".card").first()).toHaveCSS(
+    "border-top-style",
+    "solid",
+  );
+  const stand = page.getByRole("button", { name: "Stand S", exact: true });
+  await page.keyboard.press("Tab");
+  await stand.focus();
+  await expect(stand).toBeFocused();
+  expect(
+    await stand.evaluate((element) => getComputedStyle(element).outlineStyle),
+  ).not.toBe("none");
+  await page.screenshot({
+    path: testInfo.outputPath("forced-colors.png"),
+    fullPage: true,
+  });
+  await page.keyboard.press("s");
+  await expect(page.getByRole("button", { name: "Next hand" })).toBeVisible();
+  await page.keyboard.press("t");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("table")).toHaveCount(3);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
 test("double activation cannot score or advance twice", async ({ page }) => {
   await page.goto("/");
   await startPractice(page);
