@@ -13,6 +13,7 @@ import type {
 } from "react";
 import { defaults } from "./engine/session-config";
 import History from "./History";
+import Mastery from "./Mastery";
 import { matchingRulePreset, rulePresets } from "./rule-presets";
 import { chartTarget, targetLabel } from "./engine/practice-target";
 import type { PracticeTarget } from "./engine/practice-target";
@@ -48,7 +49,14 @@ const controls: { action: Action; label: string; key: string }[] = [
   { action: "surrender", label: "Surrender", key: "R" },
 ];
 type Overlay =
-  "settings" | "chart" | "stats" | "help" | "summary" | "history" | null;
+  | "settings"
+  | "chart"
+  | "stats"
+  | "help"
+  | "summary"
+  | "history"
+  | "mastery"
+  | null;
 
 function moveChartFocus(event: ReactKeyboardEvent<HTMLButtonElement>) {
   const steps: Record<string, number> = {
@@ -1227,6 +1235,12 @@ export default function App() {
                   >
                     Session settings <span>↗</span>
                   </button>
+                  <button
+                    className="panel-link"
+                    onClick={() => open("mastery")}
+                  >
+                    Mastery exercises <span>↗</span>
+                  </button>
                 </section>
                 <div className="quiet-note">
                   <span aria-hidden="true">✧</span>
@@ -1244,6 +1258,7 @@ export default function App() {
         <Modal
           title={
             {
+              mastery: "Mastery exercises",
               settings: "Session settings",
               chart: "Strategy chart",
               stats: "Your progress",
@@ -1254,6 +1269,7 @@ export default function App() {
           }
           eyebrow={
             {
+              mastery: "ONE STEP AT A TIME",
               settings: "MAKE IT YOURS",
               chart: "A LITTLE GUIDANCE",
               stats: "SMALL WINS ADD UP",
@@ -1270,6 +1286,9 @@ export default function App() {
             <p className="form-warning" role="alert">
               {error}
             </p>
+          )}
+          {overlay === "mastery" && state && (
+            <Mastery state={state} busy={busy} onStart={saveSettings} />
           )}
           {overlay === "settings" && state && (
             <Settings

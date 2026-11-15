@@ -56,7 +56,15 @@ Node, and background load affect these figures; compare on the same machine.
 
 ## Verification record and known gaps
 
-- Local unit suite: 483 tests, including stress, rule presets, and chart drills.
+- Local unit suite: 493 tests, including stress, rule presets, chart drills, and
+  session mastery goals.
+- Mastery follow-up (local working tree): 493 unit tests pass, alongside formatting,
+  production build, and build-size gates. The Chromium/Firefox run passed 95
+  browser tests, skipped the existing Firefox populated-history audit, and had one
+  Firefox page crash in the general axe overlay scan; that scan passed when rerun
+  alone. All four new mastery browser checks passed (goal refresh continuity,
+  explicit replacement/cancellation, archived scores, narrow-screen axe/reflow).
+  WebKit/mobile-Safari mastery coverage is configured for CI but not run locally.
 - Chart-drill follow-up (local working tree): 483 unit tests and 92
   Chromium/Firefox browser tests pass; the existing Firefox populated-history
   audit is skipped. Formatting, production build, and build-size gates pass.

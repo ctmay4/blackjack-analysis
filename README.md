@@ -40,6 +40,13 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   to review ended/replaced sessions, cumulative statistics, and mistakes.
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
 - Choose immediate feedback, require-correction, or delayed feedback.
+- Open **Your focus → Mastery exercises** for a live session goal: at least 20
+  scored decisions with at least 90% accuracy. Suggested progression: hard hands,
+  soft hands, pairs, frequently missed, then mixed practice. Any exercise is
+  available at any time. Starting one requires confirmation, archives the current
+  session, and resets its goal/scores while preserving rules, wager, and feedback.
+  Goals resume after refresh/backup restore; they are not permanent mastery badges
+  or proof of coverage of all chart cells.
 - In the **Strategy chart**, select a cell and confirm **Chart drill** to repeat
   that representative two-card hand against its dealer upcard. The old session
   is archived; rules, wager, and feedback mode stay unchanged. The target is

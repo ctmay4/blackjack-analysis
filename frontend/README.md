@@ -91,6 +91,22 @@ saved, so existing checkpoints/backups need no migration. Presets do not claim
 casino-specific rules or expected returns, and do not add single-deck tables.
 Active-session changes still require confirmation before archiving/replacement.
 
+## Mastery exercises
+
+`src/Mastery.tsx` offers an optional hard → soft → pair → missed → all practice
+path from Your focus. `src/session-mastery.ts` derives a live goal from exact
+session counters: at least 20 scored decisions and 90% accuracy. Later hits and
+splits count; correction retries and delayed feedback retain existing scoring.
+The goal can become unmet again as accuracy changes. It is not a persistent
+badge, lifetime proficiency measure, or per-opening coverage claim.
+
+Exercise selection requires explicit confirmation before the existing atomic
+session reset/archive operation. Rules, bet, bankroll setting, and feedback mode
+are preserved; a chart target is removed. Frequently missed retains its existing
+saved/current-opening-mistake behavior and all-hands fallback. No new save schema
+or storage key is needed: progress is recomputed on load/backup restore. Clearing
+history does not reset the active session goal.
+
 ## Chart drills
 
 Select a strategy-chart cell during practice, then confirm replacement to start
