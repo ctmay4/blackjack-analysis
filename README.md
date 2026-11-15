@@ -198,8 +198,13 @@ Remaining work:
 
 - Separate count/true-count, bet-sizing, deviation, timed, progression,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.
-- Complete the real-device/screen-reader checks and initial release sign-off in
-  [`frontend/RELEASE.md`](frontend/RELEASE.md). Automated release hardening now
+
+Version **1.0** is accepted for release by the owner; the app is already live on
+GitHub Pages. There are no outstanding release blockers. Additional manual
+device/accessibility checks were waived, not recorded as passed; see
+[`frontend/RELEASE.md`](frontend/RELEASE.md) for the acceptance record.
+
+Verification background: Automated release hardening now
   includes cross-browser projects, WCAG scans, large-text/reflow and duplicate-click
   checks, long-session checkpoint stress coverage, build-size budgets, benchmarks,
   and screenshot artifacts. Follow-up CI at `3ff6ebb` passed 468 unit tests and
@@ -210,7 +215,8 @@ Remaining work:
   accessible names and its skipped test restored; see the release record for
   current verification and the locally patched build dependency (full npm audit
   is clean; upstream replacement remains a maintenance task).
-  Real-device/assistive-technology checks remain; release sign-off is not complete.
+  Unperformed real-device/assistive-technology checks are optional follow-up,
+  not release blockers.
 
 Strategy tables target multi-deck play; a deck setting does not imply a dedicated
 single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural. H17/S17,

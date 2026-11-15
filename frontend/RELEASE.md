@@ -1,5 +1,17 @@
 # Release hardening and sign-off
 
+## Version 1.0 — accepted
+
+The owner has completed the testing they want to perform and explicitly accepted
+version **1.0**, waiving all outstanding release gates. The app is already live
+on GitHub Pages; the `1.0` Git tag marks this version, not a new deployment.
+There are **no outstanding release blockers**.
+
+Unperformed manual checks and latest-build WebKit CI verification are waived for
+this release, not claimed as passed. The evidence and limitations below remain
+for transparency. Further checks are optional follow-up, not prerequisites for
+using or releasing this version.
+
 ## Repeatable checks
 
 Use the lockfile and the supported Node version (CI uses Node 22):
@@ -60,8 +72,8 @@ Node, and background load affect these figures; compare on the same machine.
   all 505 unit tests, and all 97 Chromium/Firefox browser tests pass without
   skips. The browser run includes scoped offline launch and multi-tab deferred
   updates. Full `npm audit` and `npm audit --omit=dev` are clean with the local
-  security patch documented below. WebKit/mobile-Safari still require CI verification on this
-  host; these results are not manual release sign-off.
+  security patch documented below. Latest-build WebKit/mobile-Safari verification
+  was not performed on this host; that gap is waived for version 1.0.
 - Follow-up fix (local working tree): Firefox's populated-history crash was
   isolated to SVG `aria-labelledby` references to an external HTML figcaption.
   Charts now use direct accessible names with the same titles. The Firefox skip
@@ -153,7 +165,10 @@ Node, and background load affect these figures; compare on the same machine.
   [`vendor/deepmerge/README.md`](vendor/deepmerge/README.md). Remove the fork once
   an upstream fix passes these regression tests and offline/update checks.
 
-## Manual release checklist (not yet signed off)
+## Verification checklist (closed for 1.0)
+
+Completed evidence is checked below. Unchecked items were waived by the owner
+for 1.0 and retained only as optional follow-up; none is a release blocker.
 
 - [x] Baseline CI passes Chromium, Firefox, desktop WebKit, and iPhone-emulated
       WebKit at `00e24b9` (linked above).
@@ -171,9 +186,10 @@ Node, and background load affect these figures; compare on the same machine.
       practice/history, cancellation, and privacy warnings.
 - [ ] Stage an update with active practice in multiple tabs; defer then apply it,
       verify committed scores/history survive. Check installed-window behavior.
-- [ ] Test the published repository-subpath URL, then tag/publish the initial release.
+- [x] Owner accepted the already-live app as version 1.0; mark it with the `1.0`
+      Git tag. A GitHub Release entry is optional, not a deployment requirement.
 
-## Real-device / assistive-technology handoff
+## Optional real-device / assistive-technology follow-up
 
 No physical iOS/Android devices, NVDA, or VoiceOver were available for this pass.
 Record tester, date, OS/browser/AT versions, URL/commit, and result for each check;
@@ -201,4 +217,5 @@ do not substitute Playwright emulation for these steps.
 
 Automated axe checks cannot certify accessibility. Emulated WebKit is not real
 Safari/iOS, and build budgets/engine benchmarks do not certify low-end device
-responsiveness. These manual checks remain release work, not claimed completion.
+responsiveness. These manual checks are waived for 1.0, not claimed complete,
+and may be performed later without blocking release.
