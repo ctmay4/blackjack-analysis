@@ -44,6 +44,10 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   mistakes scored during current practice. Targets are selected when starting or
   replacing a session; new scores stay separate. Without usable mistakes, it
   falls back to all hands. Recommendations always follow the current rules.
+- **Rule preset** offers four six-deck combinations: stand/hit soft 17, with or
+  without late surrender. Presets replace all table rules; expand **Table rules**
+  to customize. Other training settings and wagers stay unchanged. Custom rules
+  are recognized from their actual values, including when resuming old saves.
 - Changing settings requires confirmation before replacing the current session.
 
 Virtual money only. Bankroll does not restrict legal wagers. “Ideal” means the
@@ -177,16 +181,17 @@ Full JSON backup/restore and JSON/CSV history exports are implemented in
 
 Remaining work:
 
-- Separate count/true-count, bet-sizing, deviation, timed, progression, rule-preset,
+- Separate count/true-count, bet-sizing, deviation, timed, progression,
   and expected-value exercises. Browser simulations, if retained, use Web Workers.
 - Complete the real-device/screen-reader checks and initial release sign-off in
   [`frontend/RELEASE.md`](frontend/RELEASE.md). Automated release hardening now
   includes cross-browser projects, WCAG scans, large-text/reflow and duplicate-click
   checks, long-session checkpoint stress coverage, build-size budgets, benchmarks,
-  and screenshot artifacts. Baseline CI passed desktop/iPhone-emulated WebKit,
-  and responsive practice screenshots have been reviewed. Follow-up checks cover
-  isolated-profile backup transfer, multi-tab updates, and forced colors; those
-  changes still need full CI verification. Real-device/assistive-technology checks
+  and screenshot artifacts. Follow-up CI at `3ff6ebb` passed 468 unit tests and
+  112 browser tests across Chromium, Firefox, desktop/iPhone-emulated WebKit,
+  with three documented skips. Isolated-profile backup transfer, multi-tab updates,
+  and supported forced-colors checks pass; responsive practice screenshots have
+  been reviewed. Real-device/assistive-technology checks
   and the documented Firefox audit gap remain; release sign-off is not complete.
 
 Strategy tables target multi-deck play; a deck setting does not imply a dedicated

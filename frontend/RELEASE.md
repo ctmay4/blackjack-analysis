@@ -56,11 +56,17 @@ Node, and background load affect these figures; compare on the same machine.
 
 ## Verification record and known gaps
 
-- Local unit suite: 468 tests, including the stress workload.
+- Local unit suite: 474 tests, including the stress workload and rule presets.
+- Rule-preset follow-up (local working tree, not the CI commit below): 474 unit
+  tests and 86 Chromium/Firefox browser tests pass, with the existing Firefox
+  populated-history audit skipped. Formatting, production build, and build-size
+  checks pass. Browser tests cover all presets, custom rules, unchanged training
+  settings, cancellation/confirmation, and refresh persistence. WebKit has not
+  been rerun for this feature on this host.
 - Baseline CI verified on 2026-11-13 at `00e24b9`: [run 43431265954](https://github.com/ctmay4/blackjack-analysis/actions/runs/43431265954)
   passed 107 browser tests with one known Firefox audit skipped. This includes
   desktop WebKit and iPhone 13 WebKit emulation. The Pages workflow also passed
-  at that commit. These results do not cover subsequent working-tree changes.
+  at that commit. Follow-up verification is recorded below.
 - Local follow-up: 468 unit tests and 82 Chromium/Firefox browser tests pass,
   with the same Firefox audit skipped. Production build and formatting pass.
   Added isolated-profile backup transfer (archives, exact state, future play),
@@ -68,6 +74,20 @@ Node, and background load affect these figures; compare on the same machine.
   forced-colors keyboard/focus checks. Forced colors revealed an intrusive table
   watermark and missing card boundaries in Firefox; CSS now hides the watermark
   and gives cards explicit system-color borders in that mode.
+- Follow-up CI verified at `3ff6ebb`: [run 43460621280](https://github.com/ctmay4/blackjack-analysis/actions/runs/43460621280)
+  passes formatting, all 468 unit tests, and 112 browser tests across Chromium,
+  Firefox, desktop WebKit, and iPhone-emulated WebKit. Three expected skips are
+  the Firefox populated-history axe audit and the two WebKit forced-colors cases.
+  Isolated-profile backup transfer, multi-tab deferred updates, and forced-colors
+  checks pass on their supported projects. Build-size gates pass (124,313 gzip
+  bytes JavaScript; 7,864 gzip bytes CSS), and advisory benchmarks complete.
+  [Pages run 43460621016](https://github.com/ctmay4/blackjack-analysis/actions/runs/43460621016)
+  also passes build and deployment at the same commit.
+- Downloaded the follow-up CI report/screenshots and reviewed all nine practice
+  screenshots at `3ff6ebb`: 390/768/1440px in Chromium, desktop WebKit, and
+  iPhone-emulated WebKit. No obvious clipping/overlap; narrow layouts stack and
+  desktop hands remain side by side. [Artifacts](https://github.com/ctmay4/blackjack-analysis/actions/runs/43460621280/artifacts/14057230320)
+  expire after seven days. This does not certify real devices or every UI state.
 - Reviewed all nine baseline practice screenshots: 390/768/1440px in Chromium,
   desktop WebKit, and iPhone-emulated WebKit. No obvious clipping/overlap;
   narrow layouts stack and scroll, desktop shows hands side by side. This is a
@@ -75,7 +95,8 @@ Node, and background load affect these figures; compare on the same machine.
 - WebKit browser binaries download locally, but this development host lacks its
   shared libraries and passwordless sudo. A local full-matrix attempt passed
   78 tests and skipped one; 29 WebKit tests could not launch. Baseline CI above
-  supplies WebKit evidence; the new tests/CSS still need an Ubuntu CI run.
+  supplies baseline WebKit evidence; follow-up Ubuntu CI at `3ff6ebb` now also
+  verifies the new tests/CSS on supported projects.
 - Forced-colors emulation runs on Chromium/Firefox only; its new test is explicitly
   skipped on WebKit, which does not emulate that media feature. Actual OS high
   contrast and assistive technology checks remain manual.
@@ -95,7 +116,8 @@ Node, and background load affect these figures; compare on the same machine.
 - [x] Baseline CI passes Chromium, Firefox, desktop WebKit, and iPhone-emulated
       WebKit at `00e24b9` (linked above).
 - [x] Review baseline desktop/tablet/phone practice screenshots (linked CI artifacts).
-- [ ] Rerun the complete CI matrix and review artifacts after follow-up test/CSS changes.
+- [x] Complete CI matrix and practice artifact review after follow-up test/CSS
+      changes at `3ff6ebb` (112 passed, three documented skips; linked above).
 - [ ] Real Safari on iPhone/iPad and Chrome on Android: portrait/landscape,
       touch actions, scrolling, install, offline relaunch, and deferred update.
 - [ ] Real desktop Chrome/Firefox/Safari: 200%/400% browser zoom, text scaling,

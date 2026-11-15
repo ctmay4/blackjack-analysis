@@ -1,5 +1,6 @@
 import { test, expect, readSaved, startPractice } from "./helpers";
 import type { Page } from "@playwright/test";
+import { rulePresets } from "../src/rule-presets";
 
 async function start(page: Page) {
   await page.goto("/");
@@ -8,6 +9,123 @@ async function start(page: Page) {
     page.getByRole("region", { name: "Blackjack practice table" }),
   ).toBeVisible();
 }
+
+test("rule presets replace all rules, preserve training settings, and resume", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const preset = page.getByLabel("Rule preset", { exact: true });
+  await expect(preset).toHaveValue("six-deck-s17");
+  await page.getByLabel("Practice focus").selectOption("surrender");
+  await page.getByLabel("Feedback mode").selectOption("delayed");
+  await page.getByLabel("Starting bankroll").fill("2500");
+  await page.getByLabel("Wager", { exact: true }).fill("50");
+  await page
+    .getByRole("combobox", { name: "Decks", exact: true })
+    .selectOption("8");
+  await page.getByLabel("Maximum splits").selectOption("1");
+  await page.getByLabel("Shoe fraction remaining before shuffle").fill("0.5");
+  await page.getByLabel("Double after split", { exact: true }).uncheck();
+  await page.getByLabel("Re-split aces", { exact: true }).uncheck();
+  await page.getByLabel("One card on split aces", { exact: true }).uncheck();
+  await expect(preset).toHaveValue("custom");
+  await expect(
+    page.getByRole("button", { name: "Start practice" }),
+  ).toBeDisabled();
+  for (const item of rulePresets) {
+    await preset.selectOption(item.id);
+    await expect(
+      page.getByRole("combobox", { name: "Decks", exact: true }),
+    ).toHaveValue("6");
+    await expect(page.getByLabel("Maximum splits")).toHaveValue("3");
+    await expect(
+      page.getByLabel("Shoe fraction remaining before shuffle"),
+    ).toHaveValue("0.25");
+    await expect(
+      page.getByLabel("Double after split", { exact: true }),
+    ).toBeChecked();
+    await expect(
+      page.getByLabel("Re-split aces", { exact: true }),
+    ).toBeChecked();
+    await expect(
+      page.getByLabel("One card on split aces", { exact: true }),
+    ).toBeChecked();
+    await expect(page.getByLabel("Dealer behavior")).toHaveValue(
+      String(item.rules.dealer_hits_soft_17),
+    );
+    await expect(
+      page.getByLabel("Late surrender", { exact: true }),
+    ).toBeChecked({ checked: item.rules.allow_surrender });
+    await expect(
+      page.getByRole("button", { name: "Start practice" }),
+    ).toBeEnabled({ enabled: item.rules.allow_surrender });
+  }
+  await startPractice(page);
+  const saved = await readSaved(page);
+  expect(saved!.trainer.config).toMatchObject({
+    rules: rulePresets[3].rules,
+    practice: "surrender",
+    feedback_mode: "delayed",
+    bankroll: 2500,
+    bet: 50,
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await expect(preset).toHaveValue("six-deck-h17-surrender");
+  await page
+    .getByRole("combobox", { name: "Decks", exact: true })
+    .selectOption("8");
+  await expect(preset).toHaveValue("custom");
+  await page
+    .getByRole("button", { name: "Start new session", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Confirm new session" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.reload();
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await expect(preset).toHaveValue("custom");
+});
+
+test("preset edits stay local until confirmed and changing presets resets confirmation", async ({
+  page,
+}) => {
+  await start(page);
+  const before = await readSaved(page);
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await page
+    .getByLabel("Rule preset", { exact: true })
+    .selectOption("six-deck-h17");
+  await page.keyboard.press("Escape");
+  expect(await readSaved(page)).toEqual(before);
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await expect(page.getByLabel("Rule preset", { exact: true })).toHaveValue(
+    "six-deck-s17",
+  );
+  await page
+    .getByLabel("Rule preset", { exact: true })
+    .selectOption("six-deck-h17");
+  await page
+    .getByRole("button", { name: "Start new session", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Confirm new session" }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Rule preset", { exact: true })
+    .selectOption("six-deck-s17-surrender");
+  await expect(
+    page.getByRole("button", { name: "Confirm new session" }),
+  ).toHaveCount(0);
+  expect(await readSaved(page)).toEqual(before);
+  await page
+    .getByRole("button", { name: "Start new session", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Confirm new session" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect((await readSaved(page))!.trainer.config.rules).toEqual(
+    rulePresets[2].rules,
+  );
+});
 
 test("real hand, settlement, next round, and refresh resume", async ({
   page,

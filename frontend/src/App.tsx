@@ -8,6 +8,7 @@ import {
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { defaults } from "./engine/session-config";
 import History from "./History";
+import { matchingRulePreset, rulePresets } from "./rule-presets";
 import type { Action, CardData } from "./engine/types";
 import type { ChartSection, Config, Snapshot } from "./engine/session-types";
 import { SessionError, sessionController } from "./session-controller";
@@ -260,6 +261,35 @@ function Settings({
             />
           </label>
         </div>
+        <label className="field">
+          <span id="rule-preset-label">Rule preset</span>
+          <select
+            value={matchingRulePreset(config.rules)?.id ?? "custom"}
+            aria-labelledby="rule-preset-label"
+            aria-describedby="rule-preset-note"
+            onChange={(event) => {
+              const preset = rulePresets.find(
+                (item) => item.id === event.target.value,
+              );
+              if (preset) change("rules", { ...preset.rules });
+            }}
+          >
+            <option value="custom" disabled>
+              Custom rules
+            </option>
+            {rulePresets.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="form-note" id="rule-preset-note">
+          Presets replace all table rules: double after split, up to 3 splits,
+          re-split aces, one card on split aces, and shuffle at 25% remaining.
+          Blackjack pays 3:2. Edit Table rules below to customize. Strategy
+          tables target multi-deck play, not dedicated single-deck strategy.
+        </p>
         <details open={config.practice === "surrender" ? true : undefined}>
           <summary>Table rules</summary>
           <label className="field">

@@ -80,6 +80,17 @@ session whose numeric revision happens to match.
 The old fetch adapter and Python browser-test server have been removed. There
 are no production test endpoints, fixture query parameters, or window hooks.
 
+## Rule presets
+
+Setup and session settings offer four six-deck presets combining stand/hit soft
+17 with/without late surrender. Each replaces all eight rule fields, including
+shuffle threshold and split rules; practice, feedback, bankroll, and wager are
+unchanged. Expand Table rules to customize. The displayed preset is inferred from
+all rule values; unmatched settings show Custom rules. Only concrete rules are
+saved, so existing checkpoints/backups need no migration. Presets do not claim
+casino-specific rules or expected returns, and do not add single-deck tables.
+Active-session changes still require confirmation before archiving/replacement.
+
 ## Browser storage
 
 Database: `blackjack-studio`; object store: `sessions`; active key: `active`.
