@@ -1,4 +1,4 @@
-import { useId, useMemo } from "react";
+import { useMemo } from "react";
 import type { SessionJournal } from "./session-history";
 import { chartCoordinates, historicalProgress } from "./history-charts";
 import "./history-charts.css";
@@ -19,19 +19,20 @@ function Trend({
   values: (number | null)[];
   percentage?: boolean;
 }) {
-  const id = useId();
   const { min, max, zero, points } = chartCoordinates(values, percentage);
   const format = percentage ? accuracy : (value: number) => money(value);
   return (
     <figure className="history-trend">
-      <figcaption id={id}>{title}</figcaption>
+      <figcaption>{title}</figcaption>
       {points.some(Boolean) ? (
         <>
           <div className="trend-range">
             <span>Top: {format(max)}</span>
             <span>Bottom: {format(min)}</span>
           </div>
-          <svg viewBox="0 0 600 160" role="img" aria-labelledby={id}>
+          {/* A direct name avoids Firefox crashing during axe's traversal of
+              an SVG labelled by an HTML figcaption outside the SVG. */}
+          <svg viewBox="0 0 600 160" role="img" aria-label={title}>
             <desc>
               Cumulative results by ended session, oldest to newest. Exact
               values are in the progress data table below.

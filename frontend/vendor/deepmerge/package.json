@@ -1,0 +1,9 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.1-patch.0",
+  "private": true,
+  "x-security-patch": "GHSA-gcqx-w48m-w2h4",
+  "description": "Locally patched deepmerge 4.3.1 for GHSA-gcqx-w48m-w2h4",
+  "main": "index.cjs",
+  "license": "MIT"
+}

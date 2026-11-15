@@ -146,12 +146,7 @@ test("320px reflow and enlarged text keep setup, play, and history usable", asyn
 
 test("populated history, charts, and review are accessible with release screenshots", async ({
   page,
-  browserName,
 }, testInfo) => {
-  test.skip(
-    browserName === "firefox",
-    "Playwright Firefox 159 crashes during axe scans of populated SVG history; functional history coverage runs separately.",
-  );
   await page.goto("/");
   await startPractice(page);
   await expect(page.locator(".player-hand")).toBeVisible();
@@ -176,6 +171,12 @@ test("populated history, charts, and review are accessible with release screensh
     "1 ended sessions",
   );
   await accessible(page);
+  await expect(
+    page.getByRole("img", { name: "Cumulative accuracy", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "Cumulative settled profit", exact: true }),
+  ).toBeVisible();
   await page.getByText("View progress data", { exact: true }).click();
   await accessible(page);
   await page.getByRole("button", { name: /Review session 1/ }).click();

@@ -30,7 +30,7 @@ Chromium, never Firefox or WebKit.
   narrow/large-text layout, duplicate-click protection, and screenshot checks.
 - axe WCAG 2 A/AA and 2.1 AA scans: setup, active practice, chart, settings, empty
   history, help, progress, and summary. Populated history/charts/review are also
-  scanned except on Firefox (see known verification gaps).
+  scanned on every browser, including Firefox.
 - A seeded 800-round stress test varies decks/rules and immediate/delayed feedback,
   compares checkpoint restoration after every choice and next shuffle, and checks
   settlement totals. This supplements, not replaces, independent frozen fixtures.
@@ -55,6 +55,28 @@ restore, 0.0024 ms per snapshot, and 31 ms per 100-round workload. Hardware,
 Node, and background load affect these figures; compare on the same machine.
 
 ## Verification record and known gaps
+
+- Current local verification: formatting, production build, build-size gates,
+  all 505 unit tests, and all 97 Chromium/Firefox browser tests pass without
+  skips. The browser run includes scoped offline launch and multi-tab deferred
+  updates. Full `npm audit` and `npm audit --omit=dev` are clean with the local
+  security patch documented below. WebKit/mobile-Safari still require CI verification on this
+  host; these results are not manual release sign-off.
+- Follow-up fix (local working tree): Firefox's populated-history crash was
+  isolated to SVG `aria-labelledby` references to an external HTML figcaption.
+  Charts now use direct accessible names with the same titles. The Firefox skip
+  is removed; all WCAG rules remain enabled, and the formerly failing audit
+  passed three consecutive runs. The checks below record historical skips, not
+  the current test configuration.
+- Workbox's build-only `glob` is overridden to 14.0.6, bringing patched minimatch
+  11.x and removing the moderate glob/minimatch findings. This is a targeted
+  major transitive override: retest production precaching, offline repository
+  mounts, and deferred multi-tab updates when changing/removing it. Remove the
+  override once Workbox declares a patched compatible version itself.
+- Playwright is updated to 1.65.1. Update verification exposed a sibling tab
+  missing Workbox's refresh prompt; the app now also handles native controller
+  changes, reloading existing controlled tabs only when an update is activated,
+  not on first installation. Scoped offline/update browser tests pass.
 
 - Local unit suite: 493 tests, including stress, rule presets, chart drills, and
   session mastery goals.
@@ -116,16 +138,20 @@ Node, and background load affect these figures; compare on the same machine.
 - Forced-colors emulation runs on Chromium/Firefox only; its new test is explicitly
   skipped on WebKit, which does not emulate that media feature. Actual OS high
   contrast and assistive technology checks remain manual.
-- Playwright Firefox 159 reproducibly crashes during axe analysis of populated
-  SVG history, even with color-contrast disabled and when run alone. That one
-  audit test is explicitly skipped on Firefox; equivalent Chromium audits and
-  Firefox functional history tests remain enabled. Resolve/retest with a future
-  browser/tool update. No accessibility rules are disabled in enabled audits.
-- Dependency audit reports six build-tool findings (two low, four moderate) in
-  the Workbox/PWA transitive tree. There are no production dependency findings.
-  npm's proposed fix is a major PWA-plugin downgrade, not a safe patch. Do not use
-  `npm audit fix --force`; track upstream fixes and retest scoped/offline updates
-  before changing that toolchain. No untrusted build configuration is accepted.
+- `deepmerge` is locally patched for
+  [GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4).
+  Upstream still has no fixed npm release. The checked-in MIT-licensed fork at
+  `vendor/deepmerge/` replaces all three unsafe destination assignments with
+  own data-property definitions, protecting both target cloning and source
+  merges without changing the merge API. A build-only file dependency and
+  `$deepmerge` override replace every transitive copy; `npm ci` is verified.
+  Twelve tests load the dependency through Rollup's actual resolver and cover
+  prototype-poisoning regressions and API compatibility. Full audit is now
+  clean, with no suppression or toolchain downgrade. npm does not audit local
+  fork contents: the patch/tests, not the audit result alone, establish the fix.
+  Provenance, license, patch rationale, and upstream replacement criteria are in
+  [`vendor/deepmerge/README.md`](vendor/deepmerge/README.md). Remove the fork once
+  an upstream fix passes these regression tests and offline/update checks.
 
 ## Manual release checklist (not yet signed off)
 

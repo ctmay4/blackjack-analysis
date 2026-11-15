@@ -206,8 +206,11 @@ Remaining work:
   112 browser tests across Chromium, Firefox, desktop/iPhone-emulated WebKit,
   with three documented skips. Isolated-profile backup transfer, multi-tab updates,
   and supported forced-colors checks pass; responsive practice screenshots have
-  been reviewed. Real-device/assistive-technology checks
-  and the documented Firefox audit gap remain; release sign-off is not complete.
+  been reviewed. The Firefox audit gap is now fixed locally with direct SVG
+  accessible names and its skipped test restored; see the release record for
+  current verification and the locally patched build dependency (full npm audit
+  is clean; upstream replacement remains a maintenance task).
+  Real-device/assistive-technology checks remain; release sign-off is not complete.
 
 Strategy tables target multi-deck play; a deck setting does not imply a dedicated
 single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural. H17/S17,

@@ -1,9 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import "./pwa.css";
 
 export default function PwaStatus() {
   const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    let controller = navigator.serviceWorker.controller;
+    const changed = () => {
+      const previous = controller;
+      controller = navigator.serviceWorker.controller;
+      // A sibling tab can approve the waiting worker without this tab ever
+      // receiving Workbox's refresh prompt. Adopt the update in that tab too,
+      // but do not reload for the first offline installation.
+      if (previous && controller && previous !== controller)
+        window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", changed);
+    return () =>
+      navigator.serviceWorker.removeEventListener("controllerchange", changed);
+  }, []);
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
