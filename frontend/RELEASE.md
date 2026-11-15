@@ -56,7 +56,15 @@ Node, and background load affect these figures; compare on the same machine.
 
 ## Verification record and known gaps
 
-- Local unit suite: 474 tests, including the stress workload and rule presets.
+- Local unit suite: 483 tests, including stress, rule presets, and chart drills.
+- Chart-drill follow-up (local working tree): 483 unit tests and 92
+  Chromium/Firefox browser tests pass; the existing Firefox populated-history
+  audit is skipped. Formatting, production build, and build-size gates pass.
+  All 340 chart cells have deal/recommendation coverage. Drill checks include
+  keyboard/touch selection, confirmation/cancellation, repeated targets,
+  feedback/checkpoint continuity, history/backup, and narrow-screen axe scans.
+  Reviewed narrow Chromium confirmation/active screenshots without obvious
+  clipping. WebKit has not been rerun locally for this feature.
 - Rule-preset follow-up (local working tree, not the CI commit below): 474 unit
   tests and 86 Chromium/Firefox browser tests pass, with the existing Firefox
   populated-history audit skipped. Formatting, production build, and build-size

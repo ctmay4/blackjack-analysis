@@ -127,6 +127,129 @@ test("preset edits stay local until confirmed and changing presets resets confir
   );
 });
 
+test("chart drills confirm replacement, repeat the target, resume, and return to normal practice", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByLabel("Feedback mode").selectOption("delayed");
+  await page.getByLabel("Wager", { exact: true }).fill("50");
+  await startPractice(page);
+  const before = await readSaved(page);
+  await page.getByRole("button", { name: "Open strategy chart" }).click();
+  const cell = page.getByRole("button", {
+    name: "Practice Hard 16 (10, 6) vs 10: hit",
+    exact: true,
+  });
+  await cell.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Confirm chart drill" }),
+  ).toBeFocused();
+  expect(await readSaved(page)).toEqual(before);
+  await page.getByRole("button", { name: "Back to chart" }).click();
+  await expect(cell).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(
+    page.getByRole("button", {
+      name: "Practice Hard 16 (10, 6) vs 9: hit",
+      exact: true,
+    }),
+  ).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(cell).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(
+    page.getByRole("button", {
+      name: "Practice Hard 16 (10, 6) vs 2: stand",
+      exact: true,
+    }),
+  ).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(
+    page.getByRole("button", {
+      name: "Practice Hard 16 (10, 6) vs A: hit",
+      exact: true,
+    }),
+  ).toBeFocused();
+  await cell.click();
+  await page.keyboard.press("Escape");
+  expect(await readSaved(page)).toEqual(before);
+  await page.getByRole("button", { name: "Open strategy chart" }).click();
+  await cell.click();
+  await page.getByRole("button", { name: "Confirm chart drill" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const saved = await readSaved(page);
+  expect(saved!.trainer.config).toMatchObject({
+    rules: before!.trainer.config.rules,
+    bet: 50,
+    feedback_mode: "delayed",
+    practice: "targeted",
+    target: { kind: "hard", player: 16, dealer: 10 },
+  });
+  expect(saved!.id).not.toBe(before!.id);
+  await expect(page.locator(".drill-target")).toHaveText(
+    "Chart drill: Hard 16 (10, 6) vs 10",
+  );
+  for (let i = 0; i < 3; i++) {
+    const snapshot = (await readSaved(page))!.trainer;
+    expect(
+      snapshot.round.hands[0].cards
+        .map((card) => card.value)
+        .sort((a, b) => a - b),
+    ).toEqual([6, 10]);
+    expect(snapshot.round.dealerCards[0].value).toBe(10);
+    await page.getByRole("button", { name: "Stand S", exact: true }).click();
+    await page.getByRole("button", { name: "Next hand" }).click();
+  }
+  await page.reload();
+  await expect(page.locator(".drill-target")).toContainText(
+    "Hard 16 (10, 6) vs 10",
+  );
+  const resumed = await readSaved(page);
+  expect(resumed!.trainer.stats.decisions).toBe(3);
+  await page.getByRole("button", { name: "Open saved history" }).click();
+  await expect(page.getByRole("dialog")).toContainText("1 ended session");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Drill target: Hard 16");
+  await page.getByLabel("Practice focus").selectOption("all");
+  await page
+    .getByRole("button", { name: "Start new session", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Confirm new session" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator(".drill-target")).toHaveCount(0);
+  expect((await readSaved(page))!.trainer.config).not.toHaveProperty("target");
+});
+
+test("soft and pair chart targets remain selectable on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await start(page);
+  for (const [name, target] of [
+    [
+      "Practice Soft 18 (A, 7) vs 2: stand",
+      { kind: "soft", player: 7, dealer: 2 },
+    ],
+    [
+      "Practice Pair (A, A) vs A: split",
+      { kind: "pair", player: 11, dealer: 11 },
+    ],
+  ] as const) {
+    await page.getByRole("button", { name: "Open strategy chart" }).click();
+    await page.getByRole("button", { name, exact: true }).click();
+    await page.getByRole("button", { name: "Confirm chart drill" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect((await readSaved(page))!.trainer.config.target).toEqual(target);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+});
+
 test("real hand, settlement, next round, and refresh resume", async ({
   page,
 }) => {

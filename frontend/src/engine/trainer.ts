@@ -4,6 +4,7 @@ import { parseCheckpoint } from "./checkpoint";
 import type { StatsCheckpoint, TrainerCheckpoint } from "./checkpoint";
 import { BlackjackGame, handValue, isBlackjack } from "./game";
 import { sessionConfig } from "./session-config";
+import { targetCards } from "./practice-target";
 import { Strategy } from "./strategy";
 import type { Action, Recommendation } from "./types";
 import type {
@@ -371,6 +372,18 @@ export class TrainerSession {
       return true;
     const recommendation = this.recommendation;
     if (!recommendation) return false;
+    if (practice === "targeted") {
+      const target = this.configValue.target!;
+      const wanted = targetCards(target).sort((a, b) => a - b);
+      const actual = this.round.hands[0].cards
+        .map((card) => card.value)
+        .sort((a, b) => a - b);
+      return (
+        this.round.dealerCards[0].value === target.dealer &&
+        actual.length === 2 &&
+        actual.every((value, index) => value === wanted[index])
+      );
+    }
     if (practice === "missed")
       return (
         this.stats.openingMisses.has(this.situation(recommendation)) ||
@@ -386,7 +399,8 @@ export class TrainerSession {
     const randomState = random.getState?.();
     try {
       let matched = false;
-      for (let attempt = 0; attempt < 10_000; attempt++) {
+      const limit = this.configValue.practice === "targeted" ? 100_000 : 10_000;
+      for (let attempt = 0; attempt < limit; attempt++) {
         const cutCard =
           this.configValue.rules.decks *
           52 *

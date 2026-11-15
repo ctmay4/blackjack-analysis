@@ -50,6 +50,44 @@ test("WCAG checks cover setup, gameplay, and every overlay", async ({
   }
 });
 
+test("chart drill confirmation and active target are accessible on narrow screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await startPractice(page);
+  await page.getByRole("button", { name: "Open strategy chart" }).click();
+  await page
+    .getByRole("button", {
+      name: "Practice Hard 16 (10, 6) vs 10: hit",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Confirm chart drill" }),
+  ).toBeFocused();
+  await accessible(page);
+  await page.screenshot({
+    path: test.info().outputPath("chart-drill-confirmation.png"),
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Confirm chart drill" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator(".drill-target")).toContainText(
+    "Hard 16 (10, 6) vs 10",
+  );
+  await accessible(page);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: test.info().outputPath("chart-drill-active.png"),
+    fullPage: true,
+  });
+});
+
 test("modal traps keyboard focus, ignores game shortcuts, and restores focus", async ({
   page,
 }) => {

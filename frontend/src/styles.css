@@ -918,6 +918,28 @@ summary {
   padding: 8px 5px;
   border-radius: 4px;
 }
+.strategy-chart td:has(.chart-cell) {
+  padding: 0;
+}
+.chart-cell {
+  display: block;
+  width: 100%;
+  min-width: 25px;
+  min-height: 32px;
+  padding: 8px 5px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  font: inherit;
+}
+.chart-cell:focus-visible {
+  outline-offset: 0;
+}
+.drill-target {
+  margin: 8px 16px;
+  text-align: center;
+  color: var(--accent);
+}
 .chart-hit {
   background: #d7be7e22;
   color: #e0c78c;

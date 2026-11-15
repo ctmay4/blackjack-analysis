@@ -5,10 +5,17 @@ import {
   useRef,
   useState,
 } from "react";
-import type { CSSProperties, FormEvent, ReactNode } from "react";
+import type {
+  CSSProperties,
+  FormEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  ReactNode,
+} from "react";
 import { defaults } from "./engine/session-config";
 import History from "./History";
 import { matchingRulePreset, rulePresets } from "./rule-presets";
+import { chartTarget, targetLabel } from "./engine/practice-target";
+import type { PracticeTarget } from "./engine/practice-target";
 import type { Action, CardData } from "./engine/types";
 import type { ChartSection, Config, Snapshot } from "./engine/session-types";
 import { SessionError, sessionController } from "./session-controller";
@@ -26,6 +33,7 @@ const practiceNames: Record<Config["practice"], string> = {
   pair: "Pairs",
   surrender: "Surrender",
   missed: "Frequently missed",
+  targeted: "Chart drill",
 };
 const feedbackNames = {
   immediate: "Immediate feedback",
@@ -41,6 +49,35 @@ const controls: { action: Action; label: string; key: string }[] = [
 ];
 type Overlay =
   "settings" | "chart" | "stats" | "help" | "summary" | "history" | null;
+
+function moveChartFocus(event: ReactKeyboardEvent<HTMLButtonElement>) {
+  const steps: Record<string, number> = {
+    ArrowLeft: -1,
+    ArrowRight: 1,
+    ArrowUp: -10,
+    ArrowDown: 10,
+  };
+  if (
+    !Object.hasOwn(steps, event.key) &&
+    event.key !== "Home" &&
+    event.key !== "End"
+  )
+    return;
+  event.preventDefault();
+  const cells = Array.from(
+    event.currentTarget
+      .closest("table")!
+      .querySelectorAll<HTMLButtonElement>(".chart-cell"),
+  );
+  const current = cells.indexOf(event.currentTarget);
+  const next =
+    event.key === "Home"
+      ? current - (current % 10)
+      : event.key === "End"
+        ? current - (current % 10) + 9
+        : current + steps[event.key];
+  cells[Math.max(0, Math.min(cells.length - 1, next))]?.focus();
+}
 
 function Card({ data }: { data: CardData | null }) {
   if (!data)
@@ -175,7 +212,11 @@ function Settings({
   const [confirming, setConfirming] = useState(false);
   const change = <K extends keyof Config>(key: K, value: Config[K]) => {
     setConfirming(false);
-    setConfig((old) => ({ ...old, [key]: value }));
+    setConfig((old) => {
+      const updated = { ...old, [key]: value };
+      if (key === "practice" && value !== "targeted") delete updated.target;
+      return updated;
+    });
   };
   const rule = <K extends keyof Config["rules"]>(
     key: K,
@@ -208,13 +249,21 @@ function Settings({
               change("practice", event.target.value as Config["practice"])
             }
           >
-            {Object.entries(practiceNames).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {Object.entries(practiceNames)
+              .filter(([value]) => value !== "targeted" || config.target)
+              .map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
           </select>
         </label>
+        {config.target && (
+          <p className="form-note">
+            Drill target: {targetLabel(config.target)}. Select another cell in
+            the strategy chart to change it.
+          </p>
+        )}
         <label className="field">
           Feedback mode
           <select
@@ -496,6 +545,20 @@ export default function App() {
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [chart, setChart] = useState<ChartSection[] | null>(null);
   const [chartError, setChartError] = useState("");
+  const [drillTarget, setDrillTarget] = useState<PracticeTarget | null>(null);
+  const [chartCursor, setChartCursor] = useState<Record<string, number>>({});
+  const chartReturnFocus = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (drillTarget || !chartReturnFocus.current) return;
+    const label = chartReturnFocus.current;
+    const cell = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".chart-cell"),
+    ).find((button) => button.getAttribute("aria-label") === label);
+    if (cell) {
+      cell.focus();
+      chartReturnFocus.current = null;
+    }
+  }, [drillTarget, chart]);
   const actionsRef = useRef<HTMLDivElement>(null);
   const pendingActionFocus = useRef(false);
   useLayoutEffect(() => {
@@ -666,6 +729,8 @@ export default function App() {
     let cancelled = false;
     setChartError("");
     setChart(null);
+    setDrillTarget(null);
+    chartReturnFocus.current = null;
     sessionController
       .chart(state)
       .then((data) => {
@@ -977,6 +1042,11 @@ export default function App() {
                       ))}
                     </div>
                   </section>
+                  {state.config.target && (
+                    <p className="drill-target" role="status">
+                      Chart drill: {targetLabel(state.config.target)}
+                    </p>
+                  )}
                   <div className="round-caption">
                     Round {state.round_number} <span>·</span>{" "}
                     {complete
@@ -1134,9 +1204,11 @@ export default function App() {
                       <p>
                         {state.config.practice === "all"
                           ? "Build a well-rounded foundation"
-                          : state.config.practice === "missed"
-                            ? "Opening misses from saved and current sessions"
-                            : "One situation at a time"}
+                          : state.config.target
+                            ? targetLabel(state.config.target)
+                            : state.config.practice === "missed"
+                              ? "Opening misses from saved and current sessions"
+                              : "One situation at a time"}
                       </p>
                     </div>
                   </div>
@@ -1244,9 +1316,45 @@ export default function App() {
             <>
               <p className="dialog-intro">
                 Two-card opening decisions for your selected rules. Subsequent
-                hits and split restrictions can change the best move.
+                hits and split restrictions can change the best move. Select a
+                cell to practice its representative two-card hand and dealer
+                upcard. Keyboard: Tab to a chart cell, then use arrow keys to
+                move between cells and Enter to select.
               </p>
-              {chartError ? (
+              {drillTarget && state ? (
+                <div>
+                  <h3>{targetLabel(drillTarget)}</h3>
+                  <p className="confirmation">
+                    Start this chart drill? Your current session will be saved
+                    to history and replaced. Hands, bankroll, and statistics
+                    reset; rules, wager, and feedback mode stay unchanged. Each
+                    opening repeats these card values (10 includes face cards);
+                    suits and hidden cards vary. Filtered deals are for
+                    practice, not profit estimates.
+                  </p>
+                  <button
+                    className="button primary full-width"
+                    disabled={busy}
+                    autoFocus
+                    onClick={() =>
+                      saveSettings({
+                        ...state.config,
+                        practice: "targeted",
+                        target: drillTarget,
+                      })
+                    }
+                  >
+                    {busy ? "Starting…" : "Confirm chart drill"}
+                  </button>
+                  <button
+                    className="button secondary full-width"
+                    disabled={busy}
+                    onClick={() => setDrillTarget(null)}
+                  >
+                    Back to chart
+                  </button>
+                </div>
+              ) : chartError ? (
                 <div className="form-warning" role="alert">
                   <p>{chartError}</p>
                   <button
@@ -1298,7 +1406,7 @@ export default function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {section.rows.map((row) => (
+                          {section.rows.map((row, rowIndex) => (
                             <tr key={row.label}>
                               <th scope="row">{row.label}</th>
                               {row.actions.map((action, index) => (
@@ -1307,11 +1415,44 @@ export default function App() {
                                   className={`chart-${action}`}
                                   title={action}
                                 >
-                                  {action === "split"
-                                    ? "P"
-                                    : action === "surrender"
-                                      ? "R"
-                                      : action[0].toUpperCase()}
+                                  <button
+                                    type="button"
+                                    className="chart-cell"
+                                    disabled={busy}
+                                    tabIndex={
+                                      (chartCursor[section.name] ?? 0) ===
+                                      rowIndex * 10 + index
+                                        ? 0
+                                        : -1
+                                    }
+                                    onFocus={() =>
+                                      setChartCursor((old) => ({
+                                        ...old,
+                                        [section.name]: rowIndex * 10 + index,
+                                      }))
+                                    }
+                                    onKeyDown={moveChartFocus}
+                                    aria-label={`Practice ${targetLabel(chartTarget(section.name, row.label, index + 2))}: ${action}`}
+                                    onClick={(event) => {
+                                      chartReturnFocus.current =
+                                        event.currentTarget.getAttribute(
+                                          "aria-label",
+                                        );
+                                      setDrillTarget(
+                                        chartTarget(
+                                          section.name,
+                                          row.label,
+                                          index + 2,
+                                        ),
+                                      );
+                                    }}
+                                  >
+                                    {action === "split"
+                                      ? "P"
+                                      : action === "surrender"
+                                        ? "R"
+                                        : action[0].toUpperCase()}
+                                  </button>
                                 </td>
                               ))}
                             </tr>

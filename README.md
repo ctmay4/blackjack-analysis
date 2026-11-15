@@ -40,6 +40,14 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   to review ended/replaced sessions, cumulative statistics, and mistakes.
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
 - Choose immediate feedback, require-correction, or delayed feedback.
+- In the **Strategy chart**, select a cell and confirm **Chart drill** to repeat
+  that representative two-card hand against its dealer upcard. The old session
+  is archived; rules, wager, and feedback mode stay unchanged. The target is
+  shown during play and survives refresh/backup. Select another cell to change
+  targets, or change Practice focus in settings to leave the drill. Keyboard:
+  Tab to a chart cell, arrow keys to move, Home/End within a row, Enter to select.
+  Card values repeat, not exact suits or hidden cards; filtered deals are not
+  suitable for estimating profit.
 - **Frequently missed** drills opening-hand mistakes from saved sessions plus
   mistakes scored during current practice. Targets are selected when starting or
   replacing a session; new scores stay separate. Without usable mistakes, it

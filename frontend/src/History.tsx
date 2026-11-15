@@ -3,6 +3,7 @@ import { sessionController } from "./session-controller";
 import type { SessionHistory, SessionJournal } from "./session-history";
 import { REVIEW_ROUND_LIMIT } from "./session-history";
 import type { CardData } from "./engine/types";
+import { targetLabel } from "./engine/practice-target";
 import "./history.css";
 import HistoryCharts from "./HistoryCharts";
 import BackupTools from "./BackupTools";
@@ -43,8 +44,10 @@ function SessionReview({ session }: { session: SessionJournal }) {
           ? "Replaced by a new session"
           : "Ended by you"}
         <br />
-        {session.config.practice} practice · {session.config.feedback_mode}{" "}
-        feedback
+        {session.config.target
+          ? `Chart drill: ${targetLabel(session.config.target)}`
+          : `${session.config.practice} practice`}{" "}
+        · {session.config.feedback_mode} feedback
         <br />
         {session.config.rules.decks} decks ·{" "}
         {session.config.rules.dealer_hits_soft_17 ? "H17" : "S17"} · Surrender{" "}
@@ -304,7 +307,10 @@ export default function History({
                     {date(item.endedAt)}
                   </strong>
                   <span>
-                    {item.config.practice} · {item.stats.decisions} decisions ·{" "}
+                    {item.config.target
+                      ? `Chart drill: ${targetLabel(item.config.target)}`
+                      : item.config.practice}{" "}
+                    · {item.stats.decisions} decisions ·{" "}
                     {percent(item.stats.correctDecisions, item.stats.decisions)}{" "}
                     · {money(item.bankroll - item.config.bankroll)}
                   </span>

@@ -1,4 +1,5 @@
 import type { Action, CardData, Outcome, Recommendation, Rules } from "./types";
+import type { PracticeTarget } from "./practice-target";
 
 export const PRACTICE_MODES = [
   "all",
@@ -7,6 +8,7 @@ export const PRACTICE_MODES = [
   "pair",
   "surrender",
   "missed",
+  "targeted",
 ] as const;
 export type PracticeMode = (typeof PRACTICE_MODES)[number];
 export type FeedbackMode = "immediate" | "correction" | "delayed";
@@ -16,6 +18,7 @@ export interface Config {
   bet: number;
   practice: PracticeMode;
   feedback_mode: FeedbackMode;
+  target?: PracticeTarget;
 }
 export interface Feedback {
   message: string;

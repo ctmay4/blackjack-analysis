@@ -91,6 +91,26 @@ saved, so existing checkpoints/backups need no migration. Presets do not claim
 casino-specific rules or expected returns, and do not add single-deck tables.
 Active-session changes still require confirmation before archiving/replacement.
 
+## Chart drills
+
+Select a strategy-chart cell during practice, then confirm replacement to start
+an opening-hand drill. `Config.practice = "targeted"` requires a strictly validated
+`target` (kind, player value, dealer upcard). Other modes omit that optional field;
+old saves remain unchanged. Checkpoints, history JSON, and backups retain targets.
+The visible target is also included in history/review. Rules, wager, and feedback
+mode are inherited; session scores and bankroll restart normally.
+
+Targets use the chart's representative two-card values: hard totals use 2 plus
+(total − 2) below 12 and 10 plus (total − 10) otherwise; soft rows use ace plus
+the other card, pairs use equal values. Ten includes face cards. This avoids
+substituting a splittable pair for a hard-total drill with different guidance.
+The existing filtered-deal path discards nonmatching candidates without scoring
+or settlement, preserves real physical shoes/RNG, and excludes natural-blackjack
+rounds with no player decision. Feedback, later hits/splits, and scoring follow
+the current rules. Filtered outcomes are practice data, not return estimates.
+Chart buttons support touch, Enter, arrow keys, and Home/End with one tab stop
+per chart; Back to chart restores the selected cell's focus.
+
 ## Browser storage
 
 Database: `blackjack-studio`; object store: `sessions`; active key: `active`.

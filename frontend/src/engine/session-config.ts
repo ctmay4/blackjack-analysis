@@ -1,4 +1,5 @@
 import { DEFAULT_RULES, tableRules } from "./types";
+import { parsePracticeTarget } from "./practice-target";
 import { PRACTICE_MODES } from "./session-types";
 import type { Config, FeedbackMode, PracticeMode } from "./session-types";
 import type { Rules } from "./types";
@@ -48,7 +49,7 @@ export function sessionConfig(input: unknown = {}): Config {
   const value = record(input, "Session configuration");
   knownKeys(
     value,
-    ["rules", "bankroll", "bet", "practice", "feedback_mode"],
+    ["rules", "bankroll", "bet", "practice", "feedback_mode", "target"],
     "session",
   );
   const ruleInput =
@@ -79,7 +80,12 @@ export function sessionConfig(input: unknown = {}): Config {
     throw new Error(
       "Surrender practice requires late surrender to be enabled.",
     );
+  const target =
+    practice === "targeted" ? parsePracticeTarget(value.target) : undefined;
+  if (practice !== "targeted" && value.target !== undefined)
+    throw new Error("Only chart drills can have a target.");
   return {
+    ...(target ? { target } : {}),
     rules: { ...rules },
     bankroll: amount(
       value.bankroll,
