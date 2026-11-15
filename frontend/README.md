@@ -107,6 +107,44 @@ saved/current-opening-mistake behavior and all-hands fallback. No new save schem
 or storage key is needed: progress is recomputed on load/backup restore. Clearing
 history does not reset the active session goal.
 
+## Advanced practice
+
+The header’s **Advanced practice** button opens `src/AdvancedPractice.tsx` before
+or during practice without replacing, scoring, or modifying the active session.
+Advanced quiz scores and settings live only in the overlay and reset on close;
+there is no save-schema, backup, or history change.
+
+- Bet sizing uses a configurable nondecreasing five-bucket ramp (TC ≤0, 1, 2, 3,
+  ≥4), 1–100 whole base units. Counts are floored toward negative infinity before
+  bucket lookup. This is a drill, not an optimized betting recommendation.
+- Deviation practice covers four hard non-pair stand/hit openings: 16 vs 10 at
+  TC 0, 15 vs 10 at +4, 12 vs 3 at +2, and 12 vs 2 at +3. Fixed six-deck S17,
+  no surrender; stand at/above index, hit below. Source: [Wizard of Odds Hi-Lo](https://wizardofodds.com/games/blackjack/card-counting/high-low/),
+  which attributes these indices to Don Schlesinger. This is not a full index
+  system and never alters the ordinary basic-strategy recommendation engine.
+- EV prediction/simulation compares basic-flat, basic-ramp, and always-stand-flat
+  play using the existing game/strategy engine in `src/advanced.worker.ts`.
+  `src/advanced-practice.ts` supplies validated bounded workloads, reproducible
+  seeds, Hi-Lo/ramp helpers, independent 50-round blocks, and block-mean normal
+  95% intervals. Each run uses 20–200 blocks per strategy (1,000–10,000 rounds).
+  Cancellation or closing the overlay terminates the worker. Worker assets are
+  included in production precaching and the aggregate JavaScript build budget.
+
+Simulation rules: six decks, S17, 3:2, DAS, three splits, re-split aces, one card
+on split aces, no surrender/insurance/deviations/wonging/bankroll limits. Shuffle
+before a round at ≤78 cards. All dealt cards, including unused hole cards, are
+revealed after settlement for the next pre-bet Hi-Lo count. Decks remaining are
+exact, not estimated. Each block starts with a fresh shoe/count. Strategies share
+block seeds but may consume different cards; intervals are not paired-difference
+tests. Results are net base units per initial round, including splits/doubles,
+not return per unit wagered, exact EV, or risk of ruin. Ramp play has different
+exposure/variance. Short Monte Carlo runs may be noisy; no profitability claim.
+
+Tests: `src/advanced-practice.test.ts` and `tests/advanced.spec.ts` cover ramp/index
+boundaries, deterministic simulation, flat-ramp equivalence, uncertainty,
+score-once behavior, saved-session isolation, worker results/cancellation, focus,
+narrow reflow, and WCAG scans. Browser coverage is configured for all four projects.
+
 ## Chart drills
 
 Select a strategy-chart cell during practice, then confirm replacement to start
@@ -250,8 +288,13 @@ backup first and reload other tabs afterward. Files are limited to 25 MiB on
 import. History JSON is a review report, while CSV contains ended-session
 summaries (accuracy as a fraction, settled profit); neither is a restore format.
 CSV text fields are quoted and spreadsheet-formula prefixes neutralized.
-Remaining work includes expanded Safari/Firefox, screen-reader, device, and
-performance coverage.
+Initial bet-sizing, selected Hi-Lo deviation, and EV prediction/simulation
+exercises are available in Advanced practice (see above). Remaining feature work
+includes running-count/true-count conversion drills, timed practice, expanded
+progression, more indices, and optional saved advanced progress. Follow-up
+verification includes latest-feature WebKit/mobile Safari, real-device,
+screen-reader, and performance coverage; Chromium/Firefox automation covers the
+current advanced exercises.
 
 CI and Pages use Ubuntu 24.04 with Node-24-compatible action releases. Build/test
 commands explicitly use Node 22; action runtimes are separate from that toolchain.

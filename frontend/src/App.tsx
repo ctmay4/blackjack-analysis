@@ -14,6 +14,7 @@ import type {
 import { defaults } from "./engine/session-config";
 import History from "./History";
 import Mastery from "./Mastery";
+import AdvancedPractice from "./AdvancedPractice";
 import { matchingRulePreset, rulePresets } from "./rule-presets";
 import { chartTarget, targetLabel } from "./engine/practice-target";
 import type { PracticeTarget } from "./engine/practice-target";
@@ -56,6 +57,7 @@ type Overlay =
   | "summary"
   | "history"
   | "mastery"
+  | "advanced"
   | null;
 
 function moveChartFocus(event: ReactKeyboardEvent<HTMLButtonElement>) {
@@ -804,6 +806,14 @@ export default function App() {
           </span>
         </a>
         <nav aria-label="Tools">
+          <button
+            className="icon-button"
+            onClick={() => open("advanced")}
+            aria-label="Open advanced practice"
+            title="Advanced practice"
+          >
+            ∑
+          </button>
           <span className="local-label">
             <span className="status-dot" /> Browser-only
           </span>
@@ -1258,6 +1268,7 @@ export default function App() {
         <Modal
           title={
             {
+              advanced: "Advanced practice",
               mastery: "Mastery exercises",
               settings: "Session settings",
               chart: "Strategy chart",
@@ -1269,6 +1280,7 @@ export default function App() {
           }
           eyebrow={
             {
+              advanced: "COUNTS, WAGERS, AND EXPECTATIONS",
               mastery: "ONE STEP AT A TIME",
               settings: "MAKE IT YOURS",
               chart: "A LITTLE GUIDANCE",
@@ -1287,6 +1299,7 @@ export default function App() {
               {error}
             </p>
           )}
+          {overlay === "advanced" && <AdvancedPractice />}
           {overlay === "mastery" && state && (
             <Mastery state={state} busy={busy} onStart={saveSettings} />
           )}

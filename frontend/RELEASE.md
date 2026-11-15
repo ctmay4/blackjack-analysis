@@ -12,6 +12,23 @@ this release, not claimed as passed. The evidence and limitations below remain
 for transparency. Further checks are optional follow-up, not prerequisites for
 using or releasing this version.
 
+## Advanced-practice follow-up (after 1.0)
+
+Initial bet-sizing, four selected Hi-Lo stand/hit deviation drills, and an
+expected-value prediction/simulation overlay are implemented independently of
+saved basic-strategy practice. Monte Carlo simulations use a cancellable,
+precached Web Worker and display assumptions and approximate block-mean 95%
+intervals. Advanced quiz scores/settings are temporary and reset on close.
+
+Local verification: 525 unit tests pass; formatting, production build, and
+aggregate build-size gates pass (135,245 gzip bytes JavaScript, 8,071 CSS).
+The full Chromium/Firefox suite passed all 103 tests, including six advanced
+browser cases covering worker recreation offline, cancellation/close, unchanged
+saved practice, before-setup access, invalid ramps, 320px/200% text reflow, and
+WCAG scans.
+Latest advanced WebKit/mobile-Safari checks are configured but not run locally;
+this feature does not retroactively expand the 1.0 acceptance evidence.
+
 ## Repeatable checks
 
 Use the lockfile and the supported Node version (CI uses Node 22):

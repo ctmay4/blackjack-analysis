@@ -39,6 +39,11 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   **Esc** cancels and returns to practice. Use the header's **Saved history** button
   to review ended/replaced sessions, cumulative statistics, and mistakes.
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
+- Open **Advanced practice** (∑ in the header) for configurable bet-sizing drills,
+  four selected Hi-Lo stand/hit deviation drills, and expected-value prediction /
+  simulation exercises. These are separate from basic-strategy practice and do
+  not change active sessions or saved scores. Advanced scores/settings reset
+  when the overlay closes. Simulations run in a cancellable Web Worker.
 - Choose immediate feedback, require-correction, or delayed feedback.
 - Open **Your focus → Mastery exercises** for a live session goal: at least 20
   scored decisions with at least 90% accuracy. Suggested progression: hard hands,
@@ -196,8 +201,17 @@ Full JSON backup/restore and JSON/CSV history exports are implemented in
 
 Remaining work:
 
-- Separate count/true-count, bet-sizing, deviation, timed, progression,
-  and expected-value exercises. Browser simulations, if retained, use Web Workers.
+- Running-count and true-count conversion drills, timed practice, and expanded
+  progression exercises.
+- Extend the initial advanced exercises beyond four stand/hit indices; optionally
+  add saved advanced progress, more simulation rules, and risk-of-ruin analysis.
+
+Initial bet-sizing, selected deviation, and expected-value exercises are now
+available in **Advanced practice**. The simulator uses six-deck S17 rules and
+reports net base units per initial round with approximate 95% intervals based
+on independent 50-round blocks. It compares flat/ramped basic strategy and flat
+always-stand play, not exact EV or guaranteed profit. Its full assumptions are
+shown in the overlay; ramp exposure differs, so this is not return per unit bet.
 
 Version **1.0** is accepted for release by the owner; the app is already live on
 GitHub Pages. There are no outstanding release blockers. Additional manual
