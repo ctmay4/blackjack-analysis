@@ -114,6 +114,15 @@ or during practice without replacing, scoring, or modifying the active session.
 Advanced quiz scores and settings live only in the overlay and reset on close;
 there is no save-schema, backup, or history change.
 
+- Running count reveals ten cards one at a time from a separate fresh shuffled
+  single deck, starting at zero. Checking unlocks a per-card Hi-Lo tag/cumulative
+  count review. Reveals are self-paced; previous cards are hidden until review.
+- True-count conversion supplies a running count (−20 to +20) and decks remaining
+  (0.5–6 in half-deck increments). Divide and floor toward negative infinity,
+  including negative counts. This does not test deck estimation. Both counting
+  drills score each question once, retain separate scores across exercise changes,
+  and reset on overlay close. Helpers live in `src/counting-practice.ts`, UI in
+  `src/CountingPractice.tsx`; neither touches the active shoe or storage.
 - Bet sizing uses a configurable nondecreasing five-bucket ramp (TC ≤0, 1, 2, 3,
   ≥4), 1–100 whole base units. Counts are floored toward negative infinity before
   bucket lookup. This is a drill, not an optimized betting recommendation.
@@ -290,8 +299,8 @@ summaries (accuracy as a fraction, settled profit); neither is a restore format.
 CSV text fields are quoted and spreadsheet-formula prefixes neutralized.
 Initial bet-sizing, selected Hi-Lo deviation, and EV prediction/simulation
 exercises are available in Advanced practice (see above). Remaining feature work
-includes running-count/true-count conversion drills, timed practice, expanded
-progression, more indices, and optional saved advanced progress. Follow-up
+includes timed practice, expanded progression, more indices, and optional saved
+advanced progress. Follow-up
 verification includes latest-feature WebKit/mobile Safari, real-device,
 screen-reader, and performance coverage; Chromium/Firefox automation covers the
 current advanced exercises.

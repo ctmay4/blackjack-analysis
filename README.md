@@ -39,7 +39,8 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   **Esc** cancels and returns to practice. Use the header's **Saved history** button
   to review ended/replaced sessions, cumulative statistics, and mistakes.
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
-- Open **Advanced practice** (∑ in the header) for configurable bet-sizing drills,
+- Open **Advanced practice** (∑ in the header) for Hi-Lo running-count and
+  true-count conversion drills, configurable bet-sizing drills,
   four selected Hi-Lo stand/hit deviation drills, and expected-value prediction /
   simulation exercises. These are separate from basic-strategy practice and do
   not change active sessions or saved scores. Advanced scores/settings reset
@@ -201,12 +202,18 @@ Full JSON backup/restore and JSON/CSV history exports are implemented in
 
 Remaining work:
 
-- Running-count and true-count conversion drills, timed practice, and expanded
-  progression exercises.
+- Timed practice and expanded progression exercises.
 - Extend the initial advanced exercises beyond four stand/hit indices; optionally
   add saved advanced progress, more simulation rules, and risk-of-ruin analysis.
 
-Initial bet-sizing, selected deviation, and expected-value exercises are now
+Running-count and true-count conversion drills are available in **Advanced
+practice**: count ten self-paced cards from zero, then review each Hi-Lo tag and
+cumulative count; or divide a supplied running count by half-deck increments
+(0.5–6 decks), flooring toward negative infinity, including negative counts.
+Scores are separate for each drill and reset when the overlay closes. Deck
+estimation and timed counting are not included.
+
+Initial bet-sizing, selected deviation, and expected-value exercises are also
 available in **Advanced practice**. The simulator uses six-deck S17 rules and
 reports net base units per initial round with approximate 95% intervals based
 on independent 50-round blocks. It compares flat/ramped basic strategy and flat

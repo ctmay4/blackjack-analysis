@@ -10,6 +10,7 @@ import {
   validateSimulation,
 } from "./advanced-practice";
 import type { SimulationMessage } from "./advanced-practice";
+import CountingPractice from "./CountingPractice";
 import "./advanced.css";
 
 const countQuestion = () => (Math.floor(Math.random() * 19) - 6) / 2;
@@ -88,6 +89,8 @@ export default function AdvancedPractice() {
         aria-label="Advanced exercise"
       >
         {[
+          ["running-count", "Running count"],
+          ["true-count", "True count"],
           ["bet", "Bet sizing"],
           ["deviation", "Deviations"],
           ["ev", "Expected value"],
@@ -104,10 +107,14 @@ export default function AdvancedPractice() {
       </div>
       <p className="form-note">
         Hi-Lo: 2–6 = +1; 7–9 = 0; tens/aces = −1. True count = running count ÷
-        decks remaining. Here, floor toward negative infinity; no running-count
-        or deck-estimation drill is required.
+        decks remaining. Here, floor toward negative infinity. Counting drills
+        use separate cards and supplied deck amounts, not your active session.
       </p>
-      <fieldset disabled={running}>
+      <CountingPractice mode={tab} />
+      <fieldset
+        disabled={running}
+        hidden={tab === "running-count" || tab === "true-count"}
+      >
         <legend>Betting ramp (base units)</legend>
         <p>
           Use nondecreasing whole-unit wagers, 1–100. This is a configurable

@@ -1,6 +1,13 @@
 .advanced-practice {
   overflow-wrap: anywhere;
 }
+.counting-card {
+  padding: 1rem;
+  border: 1px solid var(--line, #607080);
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
 .advanced-choices {
   display: flex;
   flex-wrap: wrap;
