@@ -1,18 +1,17 @@
 # Blackjack Studio
 
-A browser-only blackjack basic-strategy trainer built with **React, TypeScript,
-and Vite**. Gameplay, teaching, charts, statistics, and session saving all run on
-your device. **No Python runtime, API server, account, or backend hosting is
-required to use or build the app.**
+A browser-based blackjack basic-strategy trainer built with **React, TypeScript,
+and Vite**. Practice hands, learn from feedback, explore strategy charts, and
+review your progress. Everything runs on your device—no account or server required.
 
-The approved slate/mint interface includes responsive desktop/mobile layouts,
-large cards and text, keyboard/touch controls, practice filters, feedback modes,
-and session summaries. Wide, shorter screens use side-by-side hands to keep
-cards, feedback, and actions visible together.
+**[Open Blackjack Studio](https://ctmay4.github.io/blackjack-analysis/)**
+
+The responsive interface supports desktop and mobile, keyboard and touch controls,
+large cards and text, and offline use.
 
 ## Run locally
 
-Node.js 20.19+ or 22.12+ is recommended:
+Use Node.js 20.19+ or 22.12+:
 
 ```sh
 npm ci --prefix frontend
@@ -33,127 +32,126 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
 
 ## Controls and practice
 
-- **H** hit, **S** stand, **D** double, **P** split, **R** surrender when enabled.
-- **Enter** next hand; **T** strategy chart; **V** statistics; **?** help.
-- **Q** summary, then **Q** again or **End session** to archive the active session.
-  **Esc** cancels and returns to practice. Use the header's **Saved history** button
-  to review ended/replaced sessions, cumulative statistics, and mistakes.
-- Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
-- Open **Advanced practice** (∑ in the header) for Hi-Lo running-count and
-  true-count conversion drills, configurable bet-sizing drills,
-  four selected Hi-Lo stand/hit deviation drills, and expected-value prediction /
-  simulation exercises. These are separate from basic-strategy practice and do
-  not change active sessions or saved scores. Advanced scores/settings reset
-  when the overlay closes. Simulations run in a cancellable Web Worker.
-- Choose immediate feedback, require-correction, or delayed feedback.
-- Open **Your focus → Mastery exercises** for a live session goal: at least 20
-  scored decisions with at least 90% accuracy. Suggested progression: hard hands,
-  soft hands, pairs, frequently missed, then mixed practice. Any exercise is
-  available at any time. Starting one requires confirmation, archives the current
-  session, and resets its goal/scores while preserving rules, wager, and feedback.
-  Goals resume after refresh/backup restore; they are not permanent mastery badges
-  or proof of coverage of all chart cells.
-- In the **Strategy chart**, select a cell and confirm **Chart drill** to repeat
-  that representative two-card hand against its dealer upcard. The old session
-  is archived; rules, wager, and feedback mode stay unchanged. The target is
-  shown during play and survives refresh/backup. Select another cell to change
-  targets, or change Practice focus in settings to leave the drill. Keyboard:
-  Tab to a chart cell, arrow keys to move, Home/End within a row, Enter to select.
-  Card values repeat, not exact suits or hidden cards; filtered deals are not
-  suitable for estimating profit.
-- **Frequently missed** drills opening-hand mistakes from saved sessions plus
-  mistakes scored during current practice. Targets are selected when starting or
-  replacing a session; new scores stay separate. Without usable mistakes, it
-  falls back to all hands. Recommendations always follow the current rules.
-- **Rule preset** offers four six-deck combinations: stand/hit soft 17, with or
-  without late surrender. Presets replace all table rules; expand **Table rules**
-  to customize. Other training settings and wagers stay unchanged. Custom rules
-  are recognized from their actual values, including when resuming old saves.
-- Changing settings requires confirmation before replacing the current session.
+### Keyboard shortcuts
 
-Virtual money only. Bankroll does not restrict legal wagers. “Ideal” means the
-selected basic-strategy table; count-based deviations are not mixed into it.
+| Key | Action |
+| --- | --- |
+| **H** / **S** / **D** / **P** / **R** | Hit / stand / double / split / surrender when enabled |
+| **Enter** | Next hand |
+| **T** | Strategy chart |
+| **V** | Statistics |
+| **?** | Help |
+| **Q** | Session summary; press again to end and archive the session |
+| **Esc** | Cancel summary and return to practice |
+
+### Basic-strategy practice
+
+- Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
+- Choose immediate feedback, require-correction, or delayed feedback.
+- Open **Your focus → Mastery exercises** for a session goal of at least 20 scored
+  decisions with at least 90% accuracy. Exercises cover hard hands, soft hands,
+  pairs, frequently missed hands, and mixed practice. Goals survive refresh and
+  backup restore; they are not permanent badges or proof of full chart coverage.
+- In the **Strategy chart**, select a cell and confirm **Chart drill** to repeat
+  a representative two-card hand against that dealer upcard. The target survives
+  refresh and backup restore. Select another cell to change targets, or change
+  Practice focus in settings to leave the drill. Use Tab to reach a chart cell,
+  arrow keys to move, Home/End within a row, and Enter to select.
+- **Frequently missed** targets opening-hand mistakes from saved sessions and
+  current practice. Targets are selected when starting or replacing a session;
+  without usable mistakes, practice falls back to all hands.
+- **Rule preset** offers four six-deck combinations: stand/hit soft 17, with or
+  without late surrender. Expand **Table rules** to customize deck count, DAS,
+  split limits, re-splitting aces, and one-card split aces.
+- Changing settings or starting an exercise requires confirmation before
+  archiving and replacing the current session.
+
+Strategy tables target multi-deck play; changing the deck count does not select a
+single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural.
+“Ideal” means the selected basic-strategy table, without count-based deviations.
+Virtual money only; bankroll does not restrict legal wagers. Filtered deals are
+for practice, not profit estimation.
+
+### Advanced practice
+
+Open **Advanced practice** (∑ in the header) for:
+
+- **Hi-Lo running count:** count ten self-paced cards, then review each tag and
+  cumulative count.
+- **True-count conversion:** divide a supplied running count by remaining decks
+  in half-deck increments, flooring toward negative infinity.
+- **Bet sizing:** practice configurable bet ramps.
+- **Deviations:** practice four selected Hi-Lo stand/hit indices.
+- **Expected value:** prediction and simulation exercises comparing flat/ramped
+  basic strategy with flat always-stand play.
+
+Advanced exercises do not affect basic-strategy sessions or saved scores. Their
+scores and settings reset when the overlay closes. Simulations run in a
+cancellable Web Worker using six-deck S17 rules and report net base units per
+initial round with approximate 95% intervals. Full assumptions appear in the
+overlay; results are not exact EV or guaranteed profit.
 
 ## Session saving and privacy
 
-The active session is saved in **IndexedDB**, including the shoe, current hands,
-statistics, pending delayed feedback, and random-generator state. Refresh resumes
-that exact session without re-scoring choices or changing future shuffles.
+The active session is saved automatically in **IndexedDB**, including the shoe,
+hands, statistics, pending feedback, and random-generator state. Refresh resumes
+that session without re-scoring choices or changing future shuffles.
 
-- Data stays in this browser/profile and site origin. Different local ports,
-  hostnames, and the published Pages site have separate saves.
-- Tabs share the active session. Atomic storage transactions, session IDs, and
-  revision checks prevent stale/double choices from being applied twice. Reload
-  or the next action reconciles changes from another tab; there is no push sync.
-- Ending or replacing a session atomically archives its statistics, settings,
-  settled profit, and recent hands before clearing/replacing its active save.
-  History includes all ended sessions; each keeps its latest **200 rounds** for
-  read-only review, while statistics cover the whole session. Ended sessions
-  cannot be resumed. Previous Python-server sessions are not imported.
-- Cumulative accuracy is weighted by decisions; active-session scores are excluded
-  until the session ends. Unfinished rounds do not count as settled outcomes or
-  profit. Pending delayed-feedback choices are marked unscored in review.
-- Existing saves resume unchanged. Their full scores are retained, but earlier
-  choices cannot be reconstructed; review labels this partial coverage. History
-  deletion requires confirmation and keeps active practice intact.
-- Use **Saved history → Download backup** to save active practice and all history
-  as JSON. **Restore backup** validates the file (maximum 25 MiB), then atomically
-  replaces local practice/history after confirmation; it does not merge. Download
-  a current backup first. Reload other open tabs after restoring.
-- History JSON exports include retained reviews; CSV exports contain ended-session
-  summaries with exact accuracy fractions and settled profit. These are reports,
-  not restorable backups. Backup files include hidden cards; keep them private.
+- **Saved history** contains ended or replaced sessions, cumulative statistics,
+  accuracy/profit charts, and mistake reviews. Each session retains its latest
+  **200 rounds** for review; statistics cover the whole session. Ended sessions
+  cannot be resumed.
+- Cumulative accuracy is weighted by decisions and excludes active sessions.
+  Unfinished rounds do not count toward settled outcomes or profit; pending
+  delayed-feedback choices appear as unscored in review.
+- **Saved history → Backup and export** provides full JSON backup/restore and
+  JSON/CSV reports. Restore validates the backup (maximum 25 MiB), then replaces
+  local practice and history after confirmation—it does not merge. Download a
+  current backup first and reload other open tabs afterward. Report exports are
+  not restorable backups.
+- Data stays in this browser/profile and site origin. Different ports, hostnames,
+  and the published site have separate saves. Backups can transfer progress to
+  another device, but there is no automatic cross-device synchronization.
+- Tabs share the active session, with transaction and revision checks preventing
+  duplicate choices. Reload or the next action reconciles changes; there is no
+  live push sync.
 - Clearing site data, browser eviction, or leaving private browsing can remove
-  saves. Downloaded backups can be restored on another device/origin, but there
-  is no cloud backup or automatic cross-device synchronization.
-- Storage failures are reported rather than silently pretending progress was
-  saved. Corrupt/future-version data is preserved until you explicitly discard it.
-- After the first online visit finishes offline setup, opening/reloading the app,
-  gameplay, charts, and local history work offline. Cached app files and saved
-  sessions can still be removed by browser eviction or clearing site data.
+  saves. Installation is not a backup.
+- Storage failures are reported. Corrupt or unsupported-version data is preserved
+  until you explicitly discard it. History deletion requires confirmation and
+  leaves active practice intact.
 
-The public UI snapshot masks the dealer hole card and pending teaching hints.
-The saved state contains the full local game: this is a practice tool, not a
-secure gambling or anti-cheating system. Google Fonts optionally load online;
-system-font fallbacks work without them. No analytics are included.
+Saved state and backup files contain hidden cards: this is a practice tool, not a
+secure gambling system. Keep backups private. No analytics are included. Google
+Fonts optionally load online; system-font fallbacks work offline.
 
 ## Offline use and installation
 
 Open the published site online once and wait for **Ready for offline use on this
-device**. You can then reopen the same URL without a connection. Installation is
-optional: use your browser's **Install app** option, or Safari's **Share → Add to
-Home Screen** on iPhone/iPad. Availability and wording vary by browser.
+device**. You can then reopen the same URL offline for practice, charts, and local
+history.
 
-Updates download when online and offer **Reload to update** or **Later**; they
-do not automatically interrupt practice. Applying an update reloads open app tabs
-and restores committed practice from IndexedDB. Installation is not a backup:
-data remains local to this browser/profile and origin.
+Installation is optional: use your browser's **Install app** option, or Safari's
+**Share → Add to Home Screen** on iPhone/iPad. Availability varies by browser.
 
-Offline/PWA features require HTTPS (or localhost) and a production build; they
-are disabled in the Vite development server. To test locally, build and use
-`npm run preview --prefix frontend`.
+Updates offer **Reload to update** or **Later** without automatically interrupting
+practice. Applying an update reloads open app tabs and restores committed practice.
 
-## GitHub Pages
+Offline features require HTTPS (or localhost) and a production build. To test
+locally, build and run `npm run preview --prefix frontend`; offline features are
+disabled in the Vite development server.
 
-The app is a static site and uses relative asset paths, including home navigation,
-so it works under the published repository URL:
+## Deployment
 
-**https://ctmay4.github.io/blackjack-analysis/**
+The app is a static site with relative asset paths and can be hosted under a
+repository subpath. GitHub Pages automation is in `.github/workflows/pages.yml`.
 
-Deployment automation is in `.github/workflows/pages.yml`. For a fresh deployment:
+1. In **Settings → Pages**, set **Source** to **GitHub Actions**.
+2. Push to `master`, or manually run the Pages workflow on `master`.
+3. The workflow checks formatting, unit tests, browser tests, and build-size
+   budgets, then deploys `frontend/dist/`.
 
-1. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
-2. Push the changes to `master`, or manually run the Pages workflow on `master`.
-3. The workflow installs Node dependencies, checks formatting/unit tests, runs
-   cross-browser tests and build-size checks against the static build, and deploys
-   only `frontend/dist/`.
-
-The site becomes available after a successful **Deploy browser trainer to GitHub
-Pages** workflow run. Check the repository's **Actions** tab for deployment status.
-No Python, API URL, deployment secrets, or external backend is used by the site.
-Both workflows pin Ubuntu 24.04 and use Node-24-compatible GitHub Actions; the
-application build/test toolchain remains Node 22. Feature branches and pull
-requests run CI without publishing the live site.
+Feature branches and pull requests run CI without publishing the live site.
 
 ## Tests
 
@@ -165,80 +163,12 @@ npm test
 ```
 
 `npm test` builds the app, starts a local static preview server, and runs browser
-tests. Neither test suite requires Python. The unit suite includes comparisons
-against **175 Python game traces, 68,480 strategy decisions, and 93 trainer traces
-(618 frames)**. Reference trainer states are also saved/restored at each step.
-See [engine migration notes](frontend/src/engine/README.md) for coverage and the
-intentional split-ace corrections.
+tests. Coverage includes game rules, strategy recommendations, session persistence,
+backup/restore, cross-browser behavior, accessibility, and responsive layouts.
 
-## Migration status
-
-1. **Game and strategy port — complete:** pure TypeScript rules/settlement,
-   deterministic shoes, validation, original tables, recommendations, and tests.
-2. **Teaching/session port — complete:** accuracy, streaks, categories, mistakes,
-   bankroll, practice filters, feedback modes, masked snapshots, and charts.
-3. **Browser-only cutover — complete:** typed local controller replaces HTTP;
-   versioned validated saves restore sessions/RNG; browser tests use no Python.
-4. **Static hosting — complete:** standalone Vite output, repository-subpath
-   coverage, and automatic GitHub Pages deployment from `master`.
-5. **Legacy cleanup — complete:** Python/FastAPI, terminal UI/CLI, Python tests,
-   packaging/lockfile, and temporary oracle generators have been removed.
-   Application development, tests, CI, and deployment are now Node-only.
-
-TypeScript is the sole application implementation. Frozen JSON fixtures retain
-independent migration evidence, with provenance and integrity checks documented
-in [`frontend/src/engine/fixtures/README.md`](frontend/src/engine/fixtures/README.md).
-The retired source remains in Git history, not as a second maintained engine.
-The original visual mockup remains in `mockup/`.
-
-## Next milestones
-
-Presentation-only animations and historical cumulative-accuracy/settled-profit
-charts are implemented, with reduced-motion support and an accessible exact-value
-table for the charts.
-
-Full JSON backup/restore and JSON/CSV history exports are implemented in
-**Saved history → Backup and export**.
-
-Remaining work:
+## Upcoming features
 
 - Timed practice and expanded progression exercises.
-- Extend the initial advanced exercises beyond four stand/hit indices; optionally
-  add saved advanced progress, more simulation rules, and risk-of-ruin analysis.
-
-Running-count and true-count conversion drills are available in **Advanced
-practice**: count ten self-paced cards from zero, then review each Hi-Lo tag and
-cumulative count; or divide a supplied running count by half-deck increments
-(0.5–6 decks), flooring toward negative infinity, including negative counts.
-Scores are separate for each drill and reset when the overlay closes. Deck
-estimation and timed counting are not included.
-
-Initial bet-sizing, selected deviation, and expected-value exercises are also
-available in **Advanced practice**. The simulator uses six-deck S17 rules and
-reports net base units per initial round with approximate 95% intervals based
-on independent 50-round blocks. It compares flat/ramped basic strategy and flat
-always-stand play, not exact EV or guaranteed profit. Its full assumptions are
-shown in the overlay; ramp exposure differs, so this is not return per unit bet.
-
-Version **1.0** is accepted for release by the owner; the app is already live on
-GitHub Pages. There are no outstanding release blockers. Additional manual
-device/accessibility checks were waived, not recorded as passed; see
-[`frontend/RELEASE.md`](frontend/RELEASE.md) for the acceptance record.
-
-Verification background: Automated release hardening now
-  includes cross-browser projects, WCAG scans, large-text/reflow and duplicate-click
-  checks, long-session checkpoint stress coverage, build-size budgets, benchmarks,
-  and screenshot artifacts. Follow-up CI at `3ff6ebb` passed 468 unit tests and
-  112 browser tests across Chromium, Firefox, desktop/iPhone-emulated WebKit,
-  with three documented skips. Isolated-profile backup transfer, multi-tab updates,
-  and supported forced-colors checks pass; responsive practice screenshots have
-  been reviewed. The Firefox audit gap is now fixed locally with direct SVG
-  accessible names and its skipped test restored; see the release record for
-  current verification and the locally patched build dependency (full npm audit
-  is clean; upstream replacement remains a maintenance task).
-  Unperformed real-device/assistive-technology checks are optional follow-up,
-  not release blockers.
-
-Strategy tables target multi-deck play; a deck setting does not imply a dedicated
-single-deck strategy table. Blackjack pays 3:2; split 21 is not a natural. H17/S17,
-surrender, DAS, split limits, re-splitting aces, and one-card split aces are configurable.
+- More Hi-Lo deviation drills beyond the initial four stand/hit indices.
+- Potential additions: saved advanced-practice progress, more simulation rules,
+  and risk-of-ruin analysis.
