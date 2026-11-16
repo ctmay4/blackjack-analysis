@@ -107,6 +107,31 @@ saved/current-opening-mistake behavior and all-hands fallback. No new save schem
 or storage key is needed: progress is recomputed on load/backup restore. Clearing
 history does not reset the active session goal.
 
+## Timed practice
+
+The practice sidebar offers optional 1-, 3-, and 5-minute local challenges.
+`src/TimedPractice.tsx` owns the UI-only timer and scored-decision deltas;
+`src/timed-practice.ts` supplies elapsed-time, pause, and result helpers.
+Elapsed time uses a monotonic clock, not interval counts. Dialogs, errors,
+loading, and hidden tabs pause the timer; resuming is explicit. Time includes
+next-hand/dealing and feedback, so decisions/minute is throughput, not average
+reaction latency. Finishing early or reaching zero freezes the challenge results
+without blocking actions, ending the session, or changing engine scoring.
+
+Only successful action commits while running contribute scored-decision deltas.
+Illegal/failed actions and Next do not count. Delayed feedback contributes when
+scores are released, which can include choices made before starting or while
+paused; unfinished delayed choices are absent. Correction retries follow the
+existing engine's scoring. Accuracy is unavailable with zero scored decisions.
+Results reset on refresh, session replacement/end, or starting a new challenge;
+there is no persistence, backup, history, or save-schema change. Other tabs'
+choices are not live-synced into challenge results. Untimed practice is unchanged.
+
+Unit tests cover durations, elapsed-time clamping, pause/resume, and summaries.
+`tests/timed-practice.spec.ts` covers scoring, timer expiry, manual/dialog pauses,
+saved-state isolation, refresh reset, early finish, narrow/large-text reflow,
+and accessibility; it is configured for all four browser projects.
+
 ## Advanced practice
 
 The header’s **Advanced practice** button opens `src/AdvancedPractice.tsx` before

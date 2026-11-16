@@ -47,6 +47,14 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
 ### Basic-strategy practice
 
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
+- **Timed practice** in the practice sidebar offers optional 1-, 3-, and 5-minute
+  challenges with scored decisions, accuracy, and decisions per active minute.
+  Pause/resume or finish early; dialogs and hidden tabs pause automatically and
+  require manual resume. The timer ending does not stop or replace practice.
+  Timer results are temporary (not saved, backed up, or restored on refresh).
+  Speed includes dealing and feedback time. Scores count when committed while
+  the timer runs; delayed feedback can include choices made before starting or
+  while paused. Normal correction-mode scoring still applies.
 - Choose immediate feedback, require-correction, or delayed feedback.
 - Open **Your focus → Mastery exercises** for a session goal of at least 20 scored
   decisions with at least 90% accuracy. Exercises cover hard hands, soft hands,
@@ -168,7 +176,7 @@ backup/restore, cross-browser behavior, accessibility, and responsive layouts.
 
 ## Upcoming features
 
-- Timed practice and expanded progression exercises.
+- Expanded progression exercises.
 - More Hi-Lo deviation drills beyond the initial four stand/hit indices.
 - Potential additions: saved advanced-practice progress, more simulation rules,
   and risk-of-ruin analysis.

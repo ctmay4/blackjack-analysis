@@ -12,6 +12,22 @@ this release, not claimed as passed. The evidence and limitations below remain
 for transparency. Further checks are optional follow-up, not prerequisites for
 using or releasing this version.
 
+## Timed-practice follow-up (after 1.0)
+
+Optional 1-, 3-, and 5-minute challenges now show scored decisions, accuracy,
+and decisions per active minute alongside normal practice. Manual, dialog, and
+hidden-tab pauses require explicit resume. Expiry/early finish freezes challenge
+results without ending or replacing practice. Results are local and temporary;
+no storage schema, history, backup, or engine scoring changes are introduced.
+Delayed feedback counts scores when committed, not when each choice was made.
+
+Local verification: all 554 unit tests and all 111 Chromium/Firefox browser tests
+pass, including timer scoring, pause/resume, expiry, early finish, refresh/session
+replacement reset, saved-state isolation, narrow/large-text reflow, and WCAG scans.
+Formatting, production build, and build-size gates pass (137,525 gzip bytes
+JavaScript; 8,095 CSS). WebKit/mobile-Safari checks are configured but not run
+locally; real-device/assistive-technology checks remain optional follow-up.
+
 ## Advanced-practice follow-up (after 1.0)
 
 Initial bet-sizing, four selected Hi-Lo stand/hit deviation drills, and an

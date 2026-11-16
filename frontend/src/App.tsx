@@ -14,6 +14,7 @@ import type {
 import { defaults } from "./engine/session-config";
 import History from "./History";
 import Mastery from "./Mastery";
+import { useTimedPractice } from "./TimedPractice";
 import AdvancedPractice from "./AdvancedPractice";
 import { matchingRulePreset, rulePresets } from "./rule-presets";
 import { chartTarget, targetLabel } from "./engine/practice-target";
@@ -553,6 +554,10 @@ export default function App() {
   const [error, setError] = useState("");
   const [recoverable, setRecoverable] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const timed = useTimedPractice(
+    state?.session_id,
+    !!overlay || loading || !!error,
+  );
   const [chart, setChart] = useState<ChartSection[] | null>(null);
   const [chartError, setChartError] = useState("");
   const [drillTarget, setDrillTarget] = useState<PracticeTarget | null>(null);
@@ -616,12 +621,14 @@ export default function App() {
       setBusy(true);
       setError("");
       try {
-        setState(await operation());
+        const next = await operation();
+        setState(next);
         setRecoverable(false);
         if (close) {
           setOverlay(null);
           setChart(null);
         }
+        return next;
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Could not save your choice.";
@@ -669,9 +676,10 @@ export default function App() {
       )
         return;
       pendingActionFocus.current = true;
-      await mutate(() => sessionController.choose(state, action));
+      const next = await mutate(() => sessionController.choose(state, action));
+      if (next && action !== "next") timed.record(state, next);
     },
-    [state, mutate],
+    [state, mutate, timed.record],
   );
 
   const endSession = useCallback(() => {
@@ -1252,6 +1260,7 @@ export default function App() {
                     Mastery exercises <span>↗</span>
                   </button>
                 </section>
+                {timed.panel}
                 <div className="quiet-note">
                   <span aria-hidden="true">✧</span>
                   <p>
@@ -1341,7 +1350,11 @@ export default function App() {
             </>
           )}
           {overlay === "history" && (
-            <History onClear={() => mutate(() => sessionController.load())} />
+            <History
+              onClear={async () => {
+                await mutate(() => sessionController.load());
+              }}
+            />
           )}
           {overlay === "help" && <Help />}
           {overlay === "chart" && (
