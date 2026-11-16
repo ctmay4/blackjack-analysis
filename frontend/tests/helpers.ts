@@ -31,11 +31,15 @@ export async function startPractice(page: Page) {
   // On narrow screens the asynchronous offline-ready notice can appear
   // between pointerdown and pointerup over Start practice, cancelling its click.
   // Wait for and dismiss the real notice, rather than retrying a mutation.
+  // Service-worker precaching can exceed the default 5s assertion timeout on
+  // loaded CI runners (especially mobile WebKit). Keep this wait bounded and
+  // local to offline setup; do not relax gameplay assertions or replay clicks.
   const availability = page.getByRole("complementary", {
     name: "App availability",
   });
   await expect(availability.getByRole("status")).toHaveText(
     "Ready for offline use on this device.",
+    { timeout: 15_000 },
   );
   await availability
     .getByRole("button", { name: "Dismiss", exact: true })
