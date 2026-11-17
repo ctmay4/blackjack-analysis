@@ -90,14 +90,29 @@ Open **Advanced practice** (∑ in the header) for:
   in half-deck increments, flooring toward negative infinity.
 - **Bet sizing:** practice configurable bet ramps.
 - **Deviations:** practice four selected Hi-Lo stand/hit indices.
-- **Expected value:** prediction and simulation exercises comparing flat/ramped
-  basic strategy with flat always-stand play.
+- **Expected value:** opens the full-page Simulation mode described below.
 
 Advanced exercises do not affect basic-strategy sessions or saved scores. Their
-scores and settings reset when the overlay closes. Simulations run in a
-cancellable Web Worker using six-deck S17 rules and report net base units per
+scores and settings reset when the overlay closes.
+
+### Simulation mode
+
+Use **Hand practice / Simulation** above the main content to switch modes.
+Hand practice is the default; switching preserves your active hand and scores
+and pauses any timed challenge (resume manually). Simulation replaces the table
+with a full-width workspace, rather than opening a popup.
+
+Compare flat/ramped basic strategy with flat always-stand play across
+1,000–10,000 automated rounds per strategy. Configure 2/4/6/8 decks, S17/H17,
+late surrender, DAS, split limits, split-ace rules, and 50–90% penetration.
+All strategies use the same selected rules. Strategy tables remain multi-deck,
+not deck-specific optimal tables. A 52-card reserve may cause earlier shuffles.
+
+Simulations run in a cancellable Web Worker and report net base units per
 initial round with approximate 95% intervals. Full assumptions appear in the
-overlay; results are not exact EV or guaranteed profit.
+workspace; results are not exact EV, risk-of-ruin estimates, or guaranteed profit.
+Leaving Simulation mode cancels any run and resets its settings/results; it
+never changes saved practice or history.
 
 ## Session saving and privacy
 
@@ -178,5 +193,4 @@ backup/restore, cross-browser behavior, accessibility, and responsive layouts.
 
 - Expanded progression exercises.
 - More Hi-Lo deviation drills beyond the initial four stand/hit indices.
-- Potential additions: saved advanced-practice progress, more simulation rules,
-  and risk-of-ruin analysis.
+- Potential additions: saved advanced-practice progress and risk-of-ruin analysis.

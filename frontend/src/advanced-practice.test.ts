@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   betUnits,
   defaultRamp,
+  defaultSimulationRules,
+  simulationRules,
   deviationAction,
   deviations,
   estimate,
@@ -72,6 +74,44 @@ describe("advanced practice stays separate from basic strategy", () => {
       validateSimulation({ seed: 42, blocks: 20, ramp: defaultRamp }),
     ).not.toThrow();
   });
+  it("validates simulation rules and keeps defaults compatible", () => {
+    expect(simulationRules()).toEqual(defaultSimulationRules);
+    for (const rules of [
+      { decks: 1 },
+      { decks: 9 },
+      { penetration: 0.09 },
+      { penetration: 0.51 },
+      { max_splits: 4 },
+      { max_splits: -1 },
+      { dealer_hits_soft_17: "true" as unknown as boolean },
+    ])
+      expect(() =>
+        validateSimulation({ seed: 42, blocks: 20, ramp: defaultRamp, rules }),
+      ).toThrow();
+  });
+  it.each([2, 4, 6, 8])(
+    "settles reproducibly with custom %s-deck rules",
+    (decks) => {
+      for (const dealer_hits_soft_17 of [false, true]) {
+        const rules = {
+          decks,
+          dealer_hits_soft_17,
+          allow_surrender: true,
+          double_after_split: false,
+          resplit_aces: false,
+          one_card_on_split_aces: false,
+          max_splits: 3,
+          penetration: 0.1,
+        };
+        const value = simulateBlock("basic-flat", 17, defaultRamp, rules);
+        expect(Number.isFinite(value)).toBe(true);
+        expect(simulateBlock("basic-flat", 17, defaultRamp, rules)).toBe(value);
+        expect(simulateBlock("basic-ramp", 17, [2, 2, 2, 2, 2], rules)).toBe(
+          value * 2,
+        );
+      }
+    },
+  );
   it("reports independent-block mean and uncertainty", () => {
     const result = estimate([1, 2, 3]);
     expect(result.mean).toBe(2);

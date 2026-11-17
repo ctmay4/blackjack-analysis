@@ -1,6 +1,65 @@
 .advanced-practice {
   overflow-wrap: anywhere;
 }
+.app-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.app-modes [aria-pressed="true"] {
+  border-color: currentColor;
+  font-weight: 700;
+}
+.simulation-page {
+  min-width: 0;
+}
+.simulation-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.simulation-check input {
+  width: auto;
+}
+.simulation-form fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.75rem;
+}
+.simulation-form .field {
+  margin: 0;
+  min-width: 0;
+}
+.simulation-form input,
+.simulation-form select {
+  width: 100%;
+  min-width: 0;
+}
+.simulation-layout > section {
+  min-width: 0;
+}
+@media (min-width: 1000px) {
+  .simulation-layout {
+    display: grid;
+    grid-template-columns: minmax(15rem, 1fr) minmax(0, 3fr);
+    gap: 0 1.5rem;
+    align-items: start;
+  }
+  .simulation-layout .advanced-intro {
+    grid-column: 1 / -1;
+  }
+  .simulation-layout > .simulation-ramp {
+    grid-column: 1;
+  }
+  .simulation-layout > section {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .simulation-layout .advanced-ramp {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 .counting-card {
   padding: 1rem;
   border: 1px solid var(--line, #607080);

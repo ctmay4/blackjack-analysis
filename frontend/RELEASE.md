@@ -12,6 +12,25 @@ this release, not claimed as passed. The evidence and limitations below remain
 for transparency. Further checks are optional follow-up, not prerequisites for
 using or releasing this version.
 
+## Simulation-mode follow-up (after 1.0)
+
+Hand practice remains the default. A main-content mode switch opens a full-width
+Simulation workspace instead of a narrow overlay. Switching preserves saved
+practice, disables gameplay shortcuts in Simulation, and pauses timed challenges
+with manual resume. Leaving Simulation terminates its worker and resets its
+local settings/results. Advanced practice's Expected value button opens this mode.
+
+Simulation now supports 2/4/6/8 decks, S17/H17, late surrender, DAS, split/ace
+rules, and 50–90% penetration, retaining 3:2 blackjack and multi-deck strategy
+tables. All compared strategies use the selected rules. A 52-card reserve may
+cause earlier shuffles. No storage, backup, or history schema changes.
+
+Local verification: 559 unit tests and all 113 Chromium/Firefox browser tests
+pass. Build and aggregate size gates pass. Coverage includes custom rules,
+reproducibility, worker cancellation/offline recreation, saved-hand isolation,
+desktop workspace width, accessibility, and narrow/large-text reflow.
+WebKit/mobile-Safari coverage is configured, not locally verified.
+
 ## Timed-practice follow-up (after 1.0)
 
 Optional 1-, 3-, and 5-minute challenges now show scored decisions, accuracy,

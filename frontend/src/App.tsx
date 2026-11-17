@@ -554,9 +554,10 @@ export default function App() {
   const [error, setError] = useState("");
   const [recoverable, setRecoverable] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [mode, setMode] = useState<"practice" | "simulation">("practice");
   const timed = useTimedPractice(
     state?.session_id,
-    !!overlay || loading || !!error,
+    mode === "simulation" || !!overlay || loading || !!error,
   );
   const [chart, setChart] = useState<ChartSection[] | null>(null);
   const [chartError, setChartError] = useState("");
@@ -724,6 +725,7 @@ export default function App() {
         );
         return;
       }
+      if (mode === "simulation") return;
       const shortcuts: Record<string, Action | "next"> = {
         h: "hit",
         s: "stand",
@@ -740,7 +742,7 @@ export default function App() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [overlay, state, perform, endSession]);
+  }, [overlay, state, perform, endSession, mode]);
 
   useEffect(() => {
     if (overlay !== "chart" || !state) return;
@@ -800,7 +802,9 @@ export default function App() {
         : "";
 
   return (
-    <div className={`app-shell live-app${state ? " is-playing" : ""}`}>
+    <div
+      className={`app-shell live-app${state && mode === "practice" ? " is-playing" : ""}`}
+    >
       <header className="app-header">
         <a
           className="brand"
@@ -852,6 +856,24 @@ export default function App() {
         </nav>
       </header>
       <main>
+        <div className="app-modes" role="group" aria-label="Studio mode">
+          {(
+            [
+              ["practice", "Hand practice"],
+              ["simulation", "Simulation"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              className="button secondary"
+              aria-pressed={mode === id}
+              disabled={busy || loading}
+              onClick={() => setMode(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         {error && (
           <div className="error-banner" role="alert">
             <span>{error}</span>
@@ -883,7 +905,15 @@ export default function App() {
             )}
           </div>
         )}
-        {loading ? (
+        {mode === "simulation" ? (
+          <section
+            className="simulation-page"
+            aria-label="Simulation workspace"
+          >
+            <h1>Simulation</h1>
+            <AdvancedPractice simulationOnly />
+          </section>
+        ) : loading ? (
           <div className="loading-state" role="status">
             Getting the table ready…
           </div>
@@ -1308,7 +1338,14 @@ export default function App() {
               {error}
             </p>
           )}
-          {overlay === "advanced" && <AdvancedPractice />}
+          {overlay === "advanced" && (
+            <AdvancedPractice
+              onSimulation={() => {
+                setOverlay(null);
+                setMode("simulation");
+              }}
+            />
+          )}
           {overlay === "mastery" && state && (
             <Mastery state={state} busy={busy} onStart={saveSettings} />
           )}

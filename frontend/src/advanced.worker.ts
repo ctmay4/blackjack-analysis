@@ -23,7 +23,7 @@ self.onmessage = (event: MessageEvent<SimulationRequest>) => {
       // Separate reproducible pseudo-random stream per independent block.
       const seed = (input.seed + Math.imul(block, 0x9e3779b9)) >>> 0;
       for (const mode of simulationModes)
-        samples[mode].push(simulateBlock(mode, seed, input.ramp));
+        samples[mode].push(simulateBlock(mode, seed, input.ramp, input.rules));
       send({ type: "progress", completed: block + 1, total: input.blocks });
     }
     send({

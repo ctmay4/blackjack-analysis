@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   betUnits,
   defaultRamp,
+  defaultSimulationRules,
   deviationAction,
   deviations,
   indexSource,
@@ -19,8 +20,15 @@ const deviationQuestion = () => {
   return { target, count: target.index + Math.floor(Math.random() * 5) - 2 };
 };
 
-export default function AdvancedPractice() {
-  const [tab, setTab] = useState("bet");
+export default function AdvancedPractice({
+  simulationOnly = false,
+  onSimulation,
+}: {
+  simulationOnly?: boolean;
+  onSimulation?: () => void;
+}) {
+  const [tab, setTab] = useState(simulationOnly ? "ev" : "bet");
+  const [rules, setRules] = useState({ ...defaultSimulationRules });
   const [ramp, setRamp] = useState([...defaultRamp]);
   const [count, setCount] = useState(countQuestion);
   const [answer, setAnswer] = useState("");
@@ -46,7 +54,7 @@ export default function AdvancedPractice() {
   };
   const run = () => {
     try {
-      const request = { seed, blocks, ramp };
+      const request = { seed, blocks, ramp, rules };
       validateSimulation(request);
       stop();
       const current = new Worker(
@@ -77,41 +85,52 @@ export default function AdvancedPractice() {
     }
   };
   return (
-    <div className="advanced-practice">
-      <p>
-        Separate exercises: your active practice, basic-strategy scores, and
-        history stay unchanged. These scores and settings reset when this
-        overlay closes. Virtual units only; not betting advice.
+    <div
+      className={`advanced-practice${simulationOnly ? " simulation-layout" : ""}`}
+    >
+      <p className="advanced-intro">
+        Your active hand, basic-strategy scores, and history stay unchanged.
+        {simulationOnly
+          ? " Simulation settings and results reset when you leave this mode."
+          : " Exercise scores and settings reset when this overlay closes."}{" "}
+        Virtual units only; not betting advice.
       </p>
-      <div
-        className="advanced-choices"
-        role="group"
-        aria-label="Advanced exercise"
-      >
-        {[
-          ["running-count", "Running count"],
-          ["true-count", "True count"],
-          ["bet", "Bet sizing"],
-          ["deviation", "Deviations"],
-          ["ev", "Expected value"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            className="button secondary"
-            aria-pressed={tab === id}
-            onClick={() => setTab(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <p className="form-note">
-        Hi-Lo: 2–6 = +1; 7–9 = 0; tens/aces = −1. True count = running count ÷
-        decks remaining. Here, floor toward negative infinity. Counting drills
-        use separate cards and supplied deck amounts, not your active session.
-      </p>
+      {!simulationOnly && (
+        <div
+          className="advanced-choices"
+          role="group"
+          aria-label="Advanced exercise"
+        >
+          {[
+            ["running-count", "Running count"],
+            ["true-count", "True count"],
+            ["bet", "Bet sizing"],
+            ["deviation", "Deviations"],
+            ["ev", "Expected value"],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              className="button secondary"
+              aria-pressed={tab === id}
+              onClick={() =>
+                id === "ev" && onSimulation ? onSimulation() : setTab(id)
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {!simulationOnly && (
+        <p className="form-note">
+          Hi-Lo: 2–6 = +1; 7–9 = 0; tens/aces = −1. True count = running count ÷
+          decks remaining. Here, floor toward negative infinity. Counting drills
+          use separate cards and supplied deck amounts, not your active session.
+        </p>
+      )}
       <CountingPractice mode={tab} />
       <fieldset
+        className="simulation-ramp"
         disabled={running}
         hidden={tab === "running-count" || tab === "true-count"}
       >
@@ -273,12 +292,14 @@ export default function AdvancedPractice() {
             just the observed winner.
           </p>
           <form
+            className="simulation-form"
             onSubmit={(e) => {
               e.preventDefault();
               run();
             }}
           >
             <fieldset disabled={running}>
+              <legend>Run settings</legend>
               <label className="field">
                 Your prediction
                 <select
@@ -323,6 +344,92 @@ export default function AdvancedPractice() {
                   }}
                 />
               </label>
+              <label className="field">
+                Decks
+                <select
+                  value={rules.decks}
+                  onChange={(e) => {
+                    setRules({ ...rules, decks: Number(e.target.value) });
+                    setMessage(null);
+                  }}
+                >
+                  {[2, 4, 6, 8].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                Dealer soft 17
+                <select
+                  value={String(rules.dealer_hits_soft_17)}
+                  onChange={(e) => {
+                    setRules({
+                      ...rules,
+                      dealer_hits_soft_17: e.target.value === "true",
+                    });
+                    setMessage(null);
+                  }}
+                >
+                  <option value="false">Stand (S17)</option>
+                  <option value="true">Hit (H17)</option>
+                </select>
+              </label>
+              <label className="field">
+                Penetration (%)
+                <input
+                  type="number"
+                  min="50"
+                  max="90"
+                  step="1"
+                  required
+                  value={Math.round((1 - rules.penetration) * 100)}
+                  onChange={(e) => {
+                    setRules({
+                      ...rules,
+                      penetration: (100 - Number(e.target.value)) / 100,
+                    });
+                    setMessage(null);
+                  }}
+                />
+              </label>
+              <label className="field">
+                Maximum splits
+                <select
+                  value={rules.max_splits}
+                  onChange={(e) => {
+                    setRules({ ...rules, max_splits: Number(e.target.value) });
+                    setMessage(null);
+                  }}
+                >
+                  {[0, 1, 2, 3].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {(
+                [
+                  ["allow_surrender", "Late surrender"],
+                  ["double_after_split", "Double after split"],
+                  ["resplit_aces", "Re-split aces"],
+                  ["one_card_on_split_aces", "One card on split aces"],
+                ] as const
+              ).map(([key, label]) => (
+                <label className="simulation-check" key={key}>
+                  <input
+                    type="checkbox"
+                    checked={rules[key]}
+                    onChange={(e) => {
+                      setRules({ ...rules, [key]: e.target.checked });
+                      setMessage(null);
+                    }}
+                  />
+                  {label}
+                </label>
+              ))}
               <button className="button primary">Run simulation</button>
             </fieldset>
           </form>
@@ -404,14 +511,16 @@ export default function AdvancedPractice() {
           <details>
             <summary>Simulation assumptions and limitations</summary>
             <p>
-              Six decks, S17, 3:2 blackjack, DAS, up to three splits, re-split
-              aces, one card on split aces, no surrender or insurance. Shuffle
-              before a round at 78 or fewer cards remaining. Each independent
-              50-round block starts fresh. All dealt cards, including unused
-              dealer hole cards, are revealed after settlement for the next
-              betting count. Bets use exact decks remaining and floored Hi-Lo
-              TC; no deviations, wonging, or bankroll limits. Splits/doubles
-              count in net profit, not the round denominator.
+              All strategies use the selected table rules, with 3:2 blackjack
+              and no insurance. Penetration is the fraction dealt before a
+              shuffle; a minimum reserve of 52 cards can cause earlier shuffles.
+              Basic play uses multi-deck S17/H17 tables, not deck-specific
+              optimal strategy. Each independent 50-round block starts fresh.
+              All dealt cards, including unused dealer hole cards, are revealed
+              after settlement for the next betting count. Bets use exact decks
+              remaining and floored Hi-Lo TC; no deviations, wonging, or
+              bankroll limits. Splits/doubles count in net profit, not the round
+              denominator.
             </p>
             <p>
               Results are Monte Carlo estimates, not exact EV, return per unit

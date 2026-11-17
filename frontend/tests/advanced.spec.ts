@@ -170,11 +170,8 @@ test("worker estimates, cancellation, and accessible narrow layout", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await startPractice(page);
-  await page.getByRole("button", { name: "Open advanced practice" }).click();
-  const dialog = page.getByRole("dialog");
-  await dialog
-    .getByRole("button", { name: "Expected value", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Simulation", exact: true }).click();
+  const dialog = page.getByRole("region", { name: "Simulation workspace" });
   await dialog.getByRole("button", { name: "Run simulation" }).click();
   await expect(dialog.getByRole("status")).toContainText(
     "Simulation complete",
@@ -199,7 +196,7 @@ test("worker estimates, cancellation, and accessible narrow layout", async ({
   });
   await page.context().setOffline(false);
   const scan = await new AxeBuilder({ page })
-    .include("dialog")
+    .include("main")
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
   expect(scan.violations).toEqual([]);
@@ -214,7 +211,9 @@ test("worker estimates, cancellation, and accessible narrow layout", async ({
   ).toBeEnabled();
   await expect(dialog.getByRole("table")).toHaveCount(0);
   await dialog.getByRole("button", { name: "Run simulation" }).click();
-  await page.keyboard.press("Escape");
+  await page
+    .getByRole("button", { name: "Hand practice", exact: true })
+    .click();
   await expect(dialog).toHaveCount(0);
 });
 

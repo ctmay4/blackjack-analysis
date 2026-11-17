@@ -1,7 +1,8 @@
 import { seededRandom, Shoe } from "./engine/cards";
 import { BlackjackGame } from "./engine/game";
 import { Strategy } from "./engine/strategy";
-import type { Action } from "./engine/types";
+import { DEFAULT_RULES, tableRules } from "./engine/types";
+import type { Action, Rules } from "./engine/types";
 
 export const indexSource =
   "https://wizardofodds.com/games/blackjack/card-counting/high-low/";
@@ -49,10 +50,25 @@ export const simulationNames: Record<SimulationMode, string> = {
   "basic-ramp": "Basic strategy / configured ramp",
   "stand-flat": "Always stand / flat 1 unit",
 };
+export const defaultSimulationRules: Rules = { ...DEFAULT_RULES, decks: 6 };
+export function simulationRules(input: Partial<Rules> = {}): Readonly<Rules> {
+  const rules = tableRules({ ...defaultSimulationRules, ...input });
+  if (
+    ![2, 4, 6, 8].includes(rules.decks) ||
+    rules.penetration < 0.1 ||
+    rules.penetration > 0.5 ||
+    rules.max_splits > 3
+  )
+    throw new Error(
+      "Use 2, 4, 6, or 8 decks, 50–90% penetration, and 0–3 splits.",
+    );
+  return rules;
+}
 export interface SimulationRequest {
   seed: number;
   blocks: number;
   ramp: number[];
+  rules?: Partial<Rules>;
 }
 export function validateSimulation(input: SimulationRequest) {
   if (
@@ -65,6 +81,7 @@ export function validateSimulation(input: SimulationRequest) {
   )
     throw new Error("Use a seed from 0 to 4294967295 and 20–200 blocks.");
   validateRamp(input.ramp);
+  simulationRules(input.rules);
 }
 export interface Estimate {
   mean: number;
@@ -87,7 +104,7 @@ export function estimate(samples: readonly number[]): Estimate {
     samples: samples.length,
   };
 }
-/** Fresh six-deck S17 blocks, 75% penetration, DAS, no surrender, 3:2, max 3 splits.
+/** Fresh independent blocks with configurable multi-deck rules and 3:2 blackjack.
  * All cards (including unused hole cards) are exposed after settlement for counting.
  * No bankroll limits, insurance, deviations, or wonging. Profit is per initial round in base units.
  */
@@ -95,20 +112,26 @@ export function simulateBlock(
   mode: SimulationMode,
   seed: number,
   ramp: readonly number[],
+  inputRules: Partial<Rules> = {},
 ): number {
   validateRamp(ramp);
+  const rules = simulationRules(inputRules);
   const random = seededRandom(seed);
-  const game = new BlackjackGame(
-    { decks: 6, dealer_hits_soft_17: false, allow_surrender: false },
-    undefined,
-    random,
+  const game = new BlackjackGame(rules, undefined, random);
+  const strategy = new Strategy(
+    rules.dealer_hits_soft_17 ? "hit_soft_17" : "stand_soft_17",
+    {
+      allowSurrender: rules.allow_surrender,
+      doubleAfterSplit: rules.double_after_split,
+    },
   );
-  const strategy = new Strategy();
   let running = 0,
     profit = 0;
   for (let round = 0; round < 50; round++) {
-    if (game.shoe.length <= 78) {
-      game.shoe = Shoe.shuffled(6, random);
+    if (
+      game.shoe.length <= Math.max(52, rules.decks * 52 * rules.penetration)
+    ) {
+      game.shoe = Shoe.shuffled(rules.decks, random);
       running = 0;
     }
     const before = game.shoe.snapshot();
@@ -121,7 +144,7 @@ export function simulateBlock(
       const hand = game.activeHand!;
       const available = game.availableActions;
       game.apply(
-        mode === "stand-flat"
+        mode === "stand-flat" || available.length === 1
           ? "stand"
           : strategy.decide(
               game.round.dealerCards[0].value,

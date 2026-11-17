@@ -137,7 +137,8 @@ and accessibility; it is configured for all four browser projects.
 The header’s **Advanced practice** button opens `src/AdvancedPractice.tsx` before
 or during practice without replacing, scoring, or modifying the active session.
 Advanced quiz scores and settings live only in the overlay and reset on close;
-there is no save-schema, backup, or history change.
+there is no save-schema, backup, or history change. Expected value opens the
+separate full-page Simulation mode instead of another overlay exercise.
 
 - Running count reveals ten cards one at a time from a separate fresh shuffled
   single deck, starting at zero. Checking unlocks a per-card Hi-Lo tag/cumulative
@@ -156,23 +157,36 @@ there is no save-schema, backup, or history change.
   no surrender; stand at/above index, hit below. Source: [Wizard of Odds Hi-Lo](https://wizardofodds.com/games/blackjack/card-counting/high-low/),
   which attributes these indices to Don Schlesinger. This is not a full index
   system and never alters the ordinary basic-strategy recommendation engine.
-- EV prediction/simulation compares basic-flat, basic-ramp, and always-stand-flat
+- EV prediction/simulation (in Simulation mode) compares basic-flat, basic-ramp, and always-stand-flat
   play using the existing game/strategy engine in `src/advanced.worker.ts`.
   `src/advanced-practice.ts` supplies validated bounded workloads, reproducible
   seeds, Hi-Lo/ramp helpers, independent 50-round blocks, and block-mean normal
   95% intervals. Each run uses 20–200 blocks per strategy (1,000–10,000 rounds).
-  Cancellation or closing the overlay terminates the worker. Worker assets are
+  Cancellation or leaving Simulation mode terminates the worker. Worker assets are
   included in production precaching and the aggregate JavaScript build budget.
 
-Simulation rules: six decks, S17, 3:2, DAS, three splits, re-split aces, one card
-on split aces, no surrender/insurance/deviations/wonging/bankroll limits. Shuffle
-before a round at ≤78 cards. All dealt cards, including unused hole cards, are
+Simulation defaults: six decks, S17, 3:2, DAS, three splits, re-split aces, one
+card on split aces, no surrender. The full-page workspace configures 2/4/6/8
+decks, S17/H17, surrender, DAS, split limits/ace rules, and 50–90% penetration.
+Strategy follows the selected S17/H17, surrender, and DAS rules using multi-deck
+tables (not deck-specific optimal tables). No insurance, deviations, wonging, or
+bankroll limits. Shuffle before a round at the remaining-card threshold, with a
+minimum reserve of 52 cards. All dealt cards, including unused hole cards, are
 revealed after settlement for the next pre-bet Hi-Lo count. Decks remaining are
 exact, not estimated. Each block starts with a fresh shoe/count. Strategies share
 block seeds but may consume different cards; intervals are not paired-difference
 tests. Results are net base units per initial round, including splits/doubles,
 not return per unit wagered, exact EV, or risk of ruin. Ramp play has different
 exposure/variance. Short Monte Carlo runs may be noisy; no profitability claim.
+
+`App.tsx` defaults to Hand practice and replaces its main content in Simulation
+mode, preserving saved practice and suppressing gameplay shortcuts. Timed
+challenges pause and require manual resume. Desktop simulation uses a wide grid;
+mobile stacks the controls. Simulation settings/results are temporary and reset
+on leaving the mode. No storage/backup schema changes are needed.
+`tests/simulation-mode.spec.ts` covers custom rules, saved-hand isolation,
+keyboard isolation, desktop width, accessibility, narrow/large-text reflow,
+and the default mode after refresh.
 
 Tests: `src/advanced-practice.test.ts` and `tests/advanced.spec.ts` cover ramp/index
 boundaries, deterministic simulation, flat-ramp equivalence, uncertainty,
@@ -324,7 +338,7 @@ summaries (accuracy as a fraction, settled profit); neither is a restore format.
 CSV text fields are quoted and spreadsheet-formula prefixes neutralized.
 Initial bet-sizing, selected Hi-Lo deviation, and EV prediction/simulation
 exercises are available in Advanced practice (see above). Remaining feature work
-includes timed practice, expanded progression, more indices, and optional saved
+includes expanded progression, more indices, and optional saved
 advanced progress. Follow-up
 verification includes latest-feature WebKit/mobile Safari, real-device,
 screen-reader, and performance coverage; Chromium/Firefox automation covers the
