@@ -330,8 +330,9 @@ export default function AdvancedPractice({
                 />
               </label>
               <label className="field">
-                Independent blocks (50 rounds each)
+                Blocks (50 rounds)
                 <input
+                  aria-label="Independent blocks (50 rounds each)"
                   type="number"
                   min="20"
                   max="200"

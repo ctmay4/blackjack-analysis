@@ -58,6 +58,28 @@ test("simulation replaces practice, supports custom rules, and preserves the act
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
     .analyze();
   expect(scan.violations).toEqual([]);
+  for (const width of [1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const field of await workspace
+      .locator(".simulation-form .field")
+      .all()) {
+      const lines = await field.evaluate((label) => {
+        const range = document.createRange();
+        range.selectNodeContents(label.firstChild!);
+        return range.getClientRects().length;
+      });
+      expect(lines).toBe(1);
+    }
+    const prediction = (await workspace
+      .getByRole("combobox", { name: "Your prediction" })
+      .boundingBox())!;
+    const blocks = (await workspace
+      .getByLabel("Independent blocks (50 rounds each)")
+      .boundingBox())!;
+    expect(
+      Math.abs(prediction.y + prediction.height - blocks.y - blocks.height),
+    ).toBeLessThan(2);
+  }
   await page.setViewportSize({ width: 320, height: 800 });
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
