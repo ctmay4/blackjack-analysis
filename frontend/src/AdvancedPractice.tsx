@@ -410,27 +410,35 @@ export default function AdvancedPractice({
                   ))}
                 </select>
               </label>
-              {(
-                [
-                  ["allow_surrender", "Late surrender"],
-                  ["double_after_split", "Double after split"],
-                  ["resplit_aces", "Re-split aces"],
-                  ["one_card_on_split_aces", "One card on split aces"],
-                ] as const
-              ).map(([key, label]) => (
-                <label className="simulation-check" key={key}>
-                  <input
-                    type="checkbox"
-                    checked={rules[key]}
-                    onChange={(e) => {
-                      setRules({ ...rules, [key]: e.target.checked });
-                      setMessage(null);
-                    }}
-                  />
-                  {label}
-                </label>
-              ))}
-              <button className="button primary">Run simulation</button>
+              <div
+                className="simulation-rule-options"
+                role="group"
+                aria-label="Optional table rules"
+              >
+                {(
+                  [
+                    ["allow_surrender", "Late surrender"],
+                    ["double_after_split", "Double after split"],
+                    ["resplit_aces", "Re-split aces"],
+                    ["one_card_on_split_aces", "One card on split aces"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label className="simulation-check" key={key}>
+                    <input
+                      type="checkbox"
+                      checked={rules[key]}
+                      onChange={(e) => {
+                        setRules({ ...rules, [key]: e.target.checked });
+                        setMessage(null);
+                      }}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              <button className="button primary simulation-submit">
+                Run simulation
+              </button>
             </fieldset>
           </form>
           {running && (

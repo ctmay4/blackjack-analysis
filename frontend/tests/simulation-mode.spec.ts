@@ -39,6 +39,20 @@ test("simulation replaces practice, supports custom rules, and preserves the act
     .boundingBox();
   expect(exercise!.x).toBeGreaterThan(ramp!.x + ramp!.width);
   expect(exercise!.width).toBeGreaterThan(600);
+  const options = workspace.getByRole("group", {
+    name: "Optional table rules",
+  });
+  await expect(options.getByRole("checkbox")).toHaveCount(4);
+  for (const checkbox of await options.getByRole("checkbox").all()) {
+    const box = (await checkbox.boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(20);
+    const label = (await checkbox.locator("..").boundingBox())!;
+    expect(label.height).toBeLessThanOrEqual(24);
+  }
+  await page.screenshot({
+    path: test.info().outputPath("simulation-rules-desktop.png"),
+    fullPage: true,
+  });
   const scan = await new AxeBuilder({ page })
     .include("main")
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
