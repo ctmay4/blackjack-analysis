@@ -69,7 +69,7 @@ export function useTimedPractice(
       </div>
       {!run ? (
         <>
-          <label>
+          <label className="field">
             Challenge length
             <select
               value={seconds}
@@ -81,7 +81,7 @@ export function useTimedPractice(
             </select>
           </label>
           <button
-            className="panel-link"
+            className="button primary full-width"
             disabled={blocked}
             onClick={() => update(startTimedRun(seconds, performance.now()))}
           >
