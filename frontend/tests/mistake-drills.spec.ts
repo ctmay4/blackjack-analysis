@@ -21,9 +21,9 @@ test("frequently missed practice uses saved mistakes with fresh scores after rel
   await page.reload();
   await page.getByLabel("Practice focus").selectOption("missed");
   await page.getByRole("button", { name: "Start practice" }).click();
-  await expect(
-    page.getByText("Opening misses from saved and current sessions"),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await expect(page.getByLabel("Practice focus")).toHaveValue("missed");
+  await page.keyboard.press("Escape");
   const saved = (await readSaved(page))!;
   expect(saved.trainer.drillSituations).toEqual([key]);
   expect(saved.trainer.stats.decisions).toBe(0);
@@ -38,8 +38,8 @@ test("frequently missed practice uses saved mistakes with fresh scores after rel
   const dealer = saved.trainer.round.dealerCards[0].value;
   expect(`${kind} ${total} vs ${dealer === 11 ? "A" : dealer}`).toBe(key);
   await page.reload();
-  await expect(
-    page.getByText("Opening misses from saved and current sessions"),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Open session settings" }).click();
+  await expect(page.getByLabel("Practice focus")).toHaveValue("missed");
+  await page.keyboard.press("Escape");
   expect(await readSaved(page)).toEqual(saved);
 });

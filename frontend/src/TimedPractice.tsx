@@ -12,6 +12,7 @@ import type { TimedRun } from "./timed-practice";
 export function useTimedPractice(
   sessionId: string | undefined,
   blocked: boolean,
+  onSetup: () => void,
 ) {
   const [run, setRun] = useState<TimedRun | null>(null);
   const current = useRef(run);
@@ -65,24 +66,13 @@ export function useTimedPractice(
   const panel = (
     <section className="timed-toolbar" aria-label="Timed practice">
       {!run ? (
-        <>
-          <select
-            aria-label="Challenge length"
-            value={seconds}
-            onChange={(event) => setSeconds(Number(event.target.value))}
-          >
-            <option value={60}>1 minute</option>
-            <option value={180}>3 minutes</option>
-            <option value={300}>5 minutes</option>
-          </select>
-          <button
-            className="button primary"
-            disabled={blocked}
-            onClick={() => update(startTimedRun(seconds, performance.now()))}
-          >
-            Start timed practice
-          </button>
-        </>
+        <button
+          className="button secondary"
+          disabled={blocked}
+          onClick={onSetup}
+        >
+          Start timed practice
+        </button>
       ) : (
         <>
           <p role="status">
@@ -132,25 +122,46 @@ export function useTimedPractice(
             </>
           )}
           {run.finished && (
-            <button className="button secondary" onClick={() => update(null)}>
+            <button className="button secondary" onClick={onSetup}>
               New timed challenge
             </button>
           )}
         </>
       )}
-      <details className="timed-details">
-        <summary>Timer details</summary>
-        <p className="form-note">
-          Optional timer; practice continues when it ends. Dialogs and hidden
-          tabs pause it; resume manually. Speed uses active time, including
-          dealing and feedback. Only scores committed while running count;
-          delayed choices count when the round ends, including choices made
-          before starting or while paused. Correction retries follow normal
-          scoring. Timer results reset on refresh or session replacement and are
-          not saved to history or backups.
-        </p>
-      </details>
     </section>
   );
-  return { panel, record };
+  const setup = (onStarted: () => void) => (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        update(startTimedRun(seconds, performance.now()));
+        onStarted();
+      }}
+    >
+      <label className="field">
+        Challenge length
+        <select
+          value={seconds}
+          onChange={(event) => setSeconds(Number(event.target.value))}
+        >
+          <option value={60}>1 minute</option>
+          <option value={180}>3 minutes</option>
+          <option value={300}>5 minutes</option>
+        </select>
+      </label>
+      <p className="form-note">
+        Optional timer; practice continues when it ends. Dialogs and hidden tabs
+        pause it; resume manually. Speed uses active time, including dealing and
+        feedback. Only scores committed while running count; delayed choices
+        count when the round ends, including choices made before starting or
+        while paused. Correction retries follow normal scoring. Timer results
+        reset on refresh or session replacement and are not saved to history or
+        backups.
+      </p>
+      <button className="button primary full-width" type="submit">
+        Start timed practice
+      </button>
+    </form>
+  );
+  return { panel, setup, record };
 }

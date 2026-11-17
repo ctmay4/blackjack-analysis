@@ -47,7 +47,8 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
 ### Basic-strategy practice
 
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
-- **Timed practice** beside the Hand practice / Simulation buttons offers optional 1-, 3-, and 5-minute
+- **Start timed practice** beside the Hand practice / Simulation buttons opens
+  a setup popup with the duration and timer details. Choose 1-, 3-, or 5-minute
   challenges with scored decisions, accuracy, and decisions per active minute.
   Pause/resume or finish early; dialogs and hidden tabs pause automatically and
   require manual resume. The timer ending does not stop or replace practice.
@@ -56,7 +57,7 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
   the timer runs; delayed feedback can include choices made before starting or
   while paused. Normal correction-mode scoring still applies.
 - Choose immediate feedback, require-correction, or delayed feedback.
-- Open **Your focus → Mastery exercises** for a session goal of at least 20 scored
+- Open **Mastery exercises** in the top toolbar for a session goal of at least 20 scored
   decisions with at least 90% accuracy. Exercises cover hard hands, soft hands,
   pairs, frequently missed hands, and mixed practice. Goals survive refresh and
   backup restore; they are not permanent badges or proof of full chart coverage.

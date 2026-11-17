@@ -15,6 +15,27 @@ test("timed challenge scores choices, pauses, expires, and leaves practice intac
   await timer
     .getByRole("button", { name: "Start timed practice", exact: true })
     .click();
+  const setup = page.getByRole("dialog", {
+    name: "Timed practice",
+    exact: true,
+  });
+  await expect(setup.getByLabel("Challenge length")).toHaveValue("60");
+  await expect(setup).toContainText(
+    "Optional timer; practice continues when it ends.",
+  );
+  await page.keyboard.press("Escape");
+  await expect(setup).toHaveCount(0);
+  expect(await readSaved(page)).toEqual(original);
+  await expect(
+    timer.getByRole("button", { name: "Start timed practice", exact: true }),
+  ).toBeFocused();
+  await timer
+    .getByRole("button", { name: "Start timed practice", exact: true })
+    .click();
+  await setup
+    .getByRole("button", { name: "Start timed practice", exact: true })
+    .click();
+  await expect(setup).toHaveCount(0);
   expect(await readSaved(page)).toEqual(original);
   if (original.trainer.round.status === "complete")
     await page.keyboard.press("Enter");
@@ -70,8 +91,23 @@ test("timed controls reflow, are accessible, and can finish early", async ({
     name: "Timed practice",
     exact: true,
   });
-  await timer.getByLabel("Challenge length").selectOption("180");
   await timer
+    .getByRole("button", { name: "Start timed practice", exact: true })
+    .click();
+  const setup = page.getByRole("dialog", {
+    name: "Timed practice",
+    exact: true,
+  });
+  await setup.getByLabel("Challenge length").selectOption("180");
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .include("dialog")
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await setup
     .getByRole("button", { name: "Start timed practice", exact: true })
     .click();
   await page.evaluate(() => {
@@ -98,7 +134,12 @@ test("timed controls reflow, are accessible, and can finish early", async ({
     ),
   ).toBe(true);
   await timer.getByRole("button", { name: "New timed challenge" }).click();
-  await expect(timer.getByLabel("Challenge length")).toHaveValue("180");
+  await expect(setup.getByLabel("Challenge length")).toHaveValue("180");
+  await page.keyboard.press("Escape");
+  await expect(setup).toHaveCount(0);
+  await expect(
+    timer.getByRole("button", { name: "New timed challenge", exact: true }),
+  ).toBeFocused();
 });
 
 test("paused choices do not count and session replacement clears the challenge", async ({
@@ -110,8 +151,15 @@ test("paused choices do not count and session replacement clears the challenge",
     name: "Timed practice",
     exact: true,
   });
-  await timer.getByLabel("Challenge length").selectOption("300");
   await timer
+    .getByRole("button", { name: "Start timed practice", exact: true })
+    .click();
+  const setup = page.getByRole("dialog", {
+    name: "Timed practice",
+    exact: true,
+  });
+  await setup.getByLabel("Challenge length").selectOption("300");
+  await setup
     .getByRole("button", { name: "Start timed practice", exact: true })
     .click();
   await timer.getByRole("button", { name: "Pause timer", exact: true }).click();

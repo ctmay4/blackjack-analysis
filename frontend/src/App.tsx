@@ -58,6 +58,7 @@ type Overlay =
   | "summary"
   | "history"
   | "mastery"
+  | "timed"
   | "advanced"
   | null;
 
@@ -558,6 +559,7 @@ export default function App() {
   const timed = useTimedPractice(
     state?.session_id,
     mode === "simulation" || !!overlay || loading || !!error,
+    () => setOverlay("timed"),
   );
   const [chart, setChart] = useState<ChartSection[] | null>(null);
   const [chartError, setChartError] = useState("");
@@ -836,7 +838,18 @@ export default function App() {
               </button>
             ))}
           </div>
-          {state && mode === "practice" && timed.panel}
+          {state && mode === "practice" && (
+            <>
+              {timed.panel}
+              <button
+                className="button secondary"
+                disabled={busy || loading}
+                onClick={() => open("mastery")}
+              >
+                Mastery exercises
+              </button>
+            </>
+          )}
           <nav aria-label="Tools">
             <button
               className="icon-button"
@@ -1249,50 +1262,6 @@ export default function App() {
                     <span>{money(state.config.bet)} wager</span>
                   </div>
                 </section>
-                <section className="panel practice-panel">
-                  <div className="panel-heading">
-                    <h2>Your focus</h2>
-                    <span className="subtle-icon" aria-hidden="true">
-                      ◎
-                    </span>
-                  </div>
-                  <div className="focus-row">
-                    <span className="focus-icon">♧</span>
-                    <div>
-                      <strong>{practiceNames[state.config.practice]}</strong>
-                      <p>
-                        {state.config.practice === "all"
-                          ? "Build a well-rounded foundation"
-                          : state.config.target
-                            ? targetLabel(state.config.target)
-                            : state.config.practice === "missed"
-                              ? "Opening misses from saved and current sessions"
-                              : "One situation at a time"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="settings-chips">
-                    <span>{feedbackNames[state.config.feedback_mode]}</span>
-                    <span>
-                      {state.config.rules.dealer_hits_soft_17 ? "H17" : "S17"}
-                    </span>
-                    {state.config.rules.allow_surrender && (
-                      <span>Surrender</span>
-                    )}
-                  </div>
-                  <button
-                    className="panel-link"
-                    onClick={() => open("settings")}
-                  >
-                    Session settings <span>↗</span>
-                  </button>
-                  <button
-                    className="panel-link"
-                    onClick={() => open("mastery")}
-                  >
-                    Mastery exercises <span>↗</span>
-                  </button>
-                </section>
                 <div className="quiet-note">
                   <span aria-hidden="true">✧</span>
                   <p>
@@ -1311,6 +1280,7 @@ export default function App() {
             {
               advanced: "Advanced practice",
               mastery: "Mastery exercises",
+              timed: "Timed practice",
               settings: "Session settings",
               chart: "Strategy chart",
               stats: "Your progress",
@@ -1323,6 +1293,7 @@ export default function App() {
             {
               advanced: "COUNTS, WAGERS, AND EXPECTATIONS",
               mastery: "ONE STEP AT A TIME",
+              timed: "PRACTICE AT YOUR PACE",
               settings: "MAKE IT YOURS",
               chart: "A LITTLE GUIDANCE",
               stats: "SMALL WINS ADD UP",
@@ -1348,6 +1319,7 @@ export default function App() {
               }}
             />
           )}
+          {overlay === "timed" && state && timed.setup(() => setOverlay(null))}
           {overlay === "mastery" && state && (
             <Mastery state={state} busy={busy} onStart={saveSettings} />
           )}

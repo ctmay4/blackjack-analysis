@@ -11,6 +11,17 @@ for (const width of [320, 1440]) {
     const tools = page.getByRole("navigation", { name: "Tools" });
     await expect(modes).toBeVisible();
     await expect(tools).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Your focus", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page
+        .locator(".header-toolbar")
+        .getByRole("button", { name: "Mastery exercises" }),
+    ).toBeVisible();
+    await expect(
+      page.locator(".header-toolbar").getByLabel("Challenge length"),
+    ).toHaveCount(0);
     const modeBox = (await modes.boundingBox())!;
     const toolBox = (await tools.boundingBox())!;
     if (width === 1440) {

@@ -94,7 +94,7 @@ Active-session changes still require confirmation before archiving/replacement.
 ## Mastery exercises
 
 `src/Mastery.tsx` offers an optional hard → soft → pair → missed → all practice
-path from Your focus. `src/session-mastery.ts` derives a live goal from exact
+path from the top-toolbar Mastery exercises button. `src/session-mastery.ts` derives a live goal from exact
 session counters: at least 20 scored decisions and 90% accuracy. Later hits and
 splits count; correction retries and delayed feedback retain existing scoring.
 The goal can become unmet again as accuracy changes. It is not a persistent
@@ -109,10 +109,12 @@ history does not reset the active session goal.
 
 ## Timed practice
 
-The header toolbar beside Hand practice / Simulation offers optional 1-, 3-,
-and 5-minute local challenges. Duration, start/pause/resume/finish controls,
-and results stay near the top; Timer details expands the scoring explanation.
-There is no separate timed-practice sidebar panel.
+The header toolbar beside Hand practice / Simulation offers Start timed practice,
+which opens the shared accessible modal with a labeled 1-/3-/5-minute duration
+selector and the scoring explanation. Cancel leaves practice unchanged; submitting
+starts the timer and closes setup. Pause/resume/finish controls and results remain
+in the toolbar. There is no separate timed-practice or Your focus sidebar panel;
+Mastery exercises is also available from the top toolbar.
 `src/TimedPractice.tsx` owns the UI-only timer and scored-decision deltas;
 `src/timed-practice.ts` supplies elapsed-time, pause, and result helpers.
 Elapsed time uses a monotonic clock, not interval counts. Dialogs, errors,
