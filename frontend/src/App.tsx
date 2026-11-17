@@ -817,63 +817,65 @@ export default function App() {
             <small>A LITTLE PRACTICE. A BETTER GAME.</small>
           </span>
         </a>
-        <nav aria-label="Tools">
-          <button
-            className="icon-button"
-            onClick={() => open("advanced")}
-            aria-label="Open advanced practice"
-            title="Advanced practice"
-          >
-            ∑
-          </button>
-          <span className="local-label">
-            <span className="status-dot" /> Browser-only
-          </span>
-          <button
-            className="icon-button"
-            disabled={busy || loading}
-            onClick={() => open("history")}
-            aria-label="Open saved history"
-            title="Saved history"
-          >
-            ↶
-          </button>
-          <button
-            className="icon-button"
-            onClick={() => open("help")}
-            aria-label="Open help"
-          >
-            ?
-          </button>
-          <button
-            className="icon-button"
-            disabled={!state || busy}
-            onClick={() => open("settings")}
-            aria-label="Open session settings"
-          >
-            ⚙
-          </button>
-        </nav>
+        <div className="header-toolbar">
+          <div className="app-modes" role="group" aria-label="Studio mode">
+            {(
+              [
+                ["practice", "Hand practice"],
+                ["simulation", "Simulation"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                className="button secondary"
+                aria-pressed={mode === id}
+                disabled={busy || loading}
+                onClick={() => setMode(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <nav aria-label="Tools">
+            <button
+              className="icon-button"
+              onClick={() => open("advanced")}
+              aria-label="Open advanced practice"
+              title="Advanced practice"
+            >
+              ∑
+            </button>
+            <span className="local-label">
+              <span className="status-dot" /> Browser-only
+            </span>
+            <button
+              className="icon-button"
+              disabled={busy || loading}
+              onClick={() => open("history")}
+              aria-label="Open saved history"
+              title="Saved history"
+            >
+              ↶
+            </button>
+            <button
+              className="icon-button"
+              onClick={() => open("help")}
+              aria-label="Open help"
+            >
+              ?
+            </button>
+            <button
+              className="icon-button"
+              disabled={!state || busy}
+              onClick={() => open("settings")}
+              aria-label="Open session settings"
+            >
+              ⚙
+            </button>
+          </nav>
+        </div>
       </header>
       <main>
-        <div className="app-modes" role="group" aria-label="Studio mode">
-          {(
-            [
-              ["practice", "Hand practice"],
-              ["simulation", "Simulation"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              className="button secondary"
-              aria-pressed={mode === id}
-              disabled={busy || loading}
-              onClick={() => setMode(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
         {error && (
           <div className="error-banner" role="alert">
             <span>{error}</span>
