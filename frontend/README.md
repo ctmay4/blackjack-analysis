@@ -109,12 +109,13 @@ history does not reset the active session goal.
 
 ## Timed practice
 
-The header toolbar beside Hand practice / Simulation offers Start timed practice,
+The center of the Basic strategy table header offers Start timed practice,
 which opens the shared accessible modal with a labeled 1-/3-/5-minute duration
 selector and the scoring explanation. Cancel leaves practice unchanged; submitting
 starts the timer and closes setup. Active/finished timer status, results, and
-pause/resume/finish controls use a separate compact bar below the toolbar,
-keeping the main button row aligned. There is no separate timed-practice or Your focus sidebar panel;
+compact pause/resume/finish controls replace the start button in the same reserved
+space. Starting, pausing, and finishing do not add header rows or move the table.
+Narrow screens reserve the same timer space below the table label/rules. There is no separate timed-practice or Your focus sidebar panel;
 Mastery exercises is also available from the top toolbar.
 `src/TimedPractice.tsx` owns the UI-only timer and scored-decision deltas;
 `src/timed-practice.ts` supplies elapsed-time, pause, and result helpers.

@@ -99,6 +99,15 @@ test("timed controls reflow, are accessible, and can finish early", async ({
     exact: true,
   });
   await setup.getByLabel("Challenge length").selectOption("180");
+  // Audit the settled dialog, not partially transparent animation frames.
+  // WebKit can snapshot native controls during the entrance fade.
+  await setup.evaluate(async (dialog) => {
+    await Promise.all(
+      dialog
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished),
+    );
+  });
   expect(
     (
       await new AxeBuilder({ page })

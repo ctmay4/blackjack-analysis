@@ -30,72 +30,88 @@
 .simulation-page > h1 {
   margin: 16px 0 8px;
 }
-.timed-toolbar {
-  display: flex;
+/* Reserve the same table-header space before, during, and after a challenge. */
+.live-app .table-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  padding: 8px 16px;
+}
+.table-toolbar .rules-summary {
+  text-align: right;
+}
+.timed-toolbar {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  gap: 3px 8px;
   min-width: 0;
-  flex: 0 1 auto;
+  min-height: 56px;
+}
+.timed-toolbar:not(.is-active) > button {
+  grid-column: 1 / -1;
 }
 .timed-toolbar p {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
 }
-.timed-toolbar.is-active {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px 24px;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #ffffff03;
+.timed-toolbar .button {
+  min-height: 30px;
+  padding: 6px 9px;
+  font-size: 11px;
 }
 .timed-status {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 14px;
+  grid-column: 1;
+  grid-row: 1;
 }
-.timed-status [role="status"] {
-  color: var(--accent);
+.timed-status [role="status"],
+.timed-finished-remaining {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .timed-status [role="timer"] {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .timed-metrics {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  text-align: center;
   color: var(--muted);
 }
 .timed-actions {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  grid-column: 2;
+  grid-row: 1;
 }
 @media (max-width: 1100px) {
-  .timed-toolbar.is-active {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .live-app .table-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
   }
-  .timed-metrics {
-    grid-column: 1;
+  .table-toolbar .timed-toolbar {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
-  .timed-actions {
+  .table-toolbar .rules-summary {
     grid-column: 2;
-    grid-row: 1 / 3;
+    grid-row: 1;
   }
 }
 @media (max-width: 600px) {
-  .timed-toolbar.is-active {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+  .timed-toolbar {
+    min-height: 76px;
   }
-  .timed-actions {
-    grid-column: 1;
-    grid-row: auto;
-  }
-}
-@media (max-width: 600px) {
   .live-app .app-header {
     padding-top: 12px;
   }

@@ -86,7 +86,12 @@ export function useTimedPractice(
                   ? "Timed practice paused"
                   : "Timed practice running"}
             </p>
-            <p role="timer" aria-label="Time remaining">
+            {run.finished && <span aria-hidden="true">Complete</span>}
+            <p
+              className={run.finished ? "timed-finished-remaining" : undefined}
+              role="timer"
+              aria-label="Time remaining"
+            >
               {Math.ceil((run.duration - run.elapsed) / 1000)} seconds remaining
             </p>
           </div>
@@ -102,6 +107,9 @@ export function useTimedPractice(
               <>
                 <button
                   className="button secondary"
+                  aria-label={
+                    run.since === null ? "Resume timer" : "Pause timer"
+                  }
                   disabled={blocked}
                   onClick={() => {
                     const latest = current.current!;
@@ -112,10 +120,11 @@ export function useTimedPractice(
                     );
                   }}
                 >
-                  {run.since === null ? "Resume timer" : "Pause timer"}
+                  {run.since === null ? "Resume" : "Pause"}
                 </button>
                 <button
                   className="button secondary"
+                  aria-label="Finish timed practice"
                   onClick={() =>
                     update({
                       ...pauseTimer(current.current!, performance.now()),
@@ -123,13 +132,17 @@ export function useTimedPractice(
                     })
                   }
                 >
-                  Finish timed practice
+                  Finish
                 </button>
               </>
             )}
             {run.finished && (
-              <button className="button secondary" onClick={onSetup}>
-                New timed challenge
+              <button
+                className="button secondary"
+                aria-label="New timed challenge"
+                onClick={onSetup}
+              >
+                New challenge
               </button>
             )}
           </div>
@@ -170,5 +183,5 @@ export function useTimedPractice(
       </button>
     </form>
   );
-  return { panel, setup, record, active: !!run };
+  return { panel, setup, record };
 }

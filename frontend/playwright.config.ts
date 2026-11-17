@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const releaseTests =
-  /(?:release-hardening|trainer|backup|history|mastery|advanced|timed-practice|simulation-mode)\.spec\.ts/;
+  /(?:release-hardening|trainer|backup|history|mastery|advanced|timed-practice|simulation-mode|header-layout)\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./tests",
@@ -27,7 +27,7 @@ export default defineConfig({
     {
       name: "mobile-safari",
       testMatch:
-        /(?:release-hardening|mastery|advanced|timed-practice|simulation-mode)\.spec\.ts/,
+        /(?:release-hardening|mastery|advanced|timed-practice|simulation-mode|header-layout)\.spec\.ts/,
       use: devices["iPhone 13"],
     },
   ],

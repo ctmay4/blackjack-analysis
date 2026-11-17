@@ -840,7 +840,6 @@ export default function App() {
           </div>
           {state && mode === "practice" && (
             <>
-              {!timed.active && timed.panel}
               <button
                 className="button secondary"
                 disabled={busy || loading}
@@ -888,7 +887,6 @@ export default function App() {
             </button>
           </nav>
         </div>
-        {state && mode === "practice" && timed.active && timed.panel}
       </header>
       <main>
         {error && (
@@ -1023,6 +1021,7 @@ export default function App() {
                   <span className="table-label">
                     <span className="status-dot" /> BASIC STRATEGY
                   </span>
+                  {timed.panel}
                   <span className="rules-summary">
                     {state.config.rules.decks} decks <span>·</span>{" "}
                     {state.config.rules.dealer_hits_soft_17
