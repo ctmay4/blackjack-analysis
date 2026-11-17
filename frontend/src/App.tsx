@@ -840,7 +840,7 @@ export default function App() {
           </div>
           {state && mode === "practice" && (
             <>
-              {timed.panel}
+              {!timed.active && timed.panel}
               <button
                 className="button secondary"
                 disabled={busy || loading}
@@ -888,6 +888,7 @@ export default function App() {
             </button>
           </nav>
         </div>
+        {state && mode === "practice" && timed.active && timed.panel}
       </header>
       <main>
         {error && (

@@ -64,7 +64,10 @@ export function useTimedPractice(
   }
   const results = run ? timedResults(run) : null;
   const panel = (
-    <section className="timed-toolbar" aria-label="Timed practice">
+    <section
+      className={`timed-toolbar${run ? " is-active" : ""}`}
+      aria-label="Timed practice"
+    >
       {!run ? (
         <button
           className="button secondary"
@@ -75,57 +78,61 @@ export function useTimedPractice(
         </button>
       ) : (
         <>
-          <p role="status">
-            {run.finished
-              ? "Timed practice complete"
-              : run.since === null
-                ? "Timed practice paused"
-                : "Timed practice running"}
-          </p>
-          <p role="timer" aria-label="Time remaining">
-            {Math.ceil((run.duration - run.elapsed) / 1000)} seconds remaining
-          </p>
-          <p>
+          <div className="timed-status">
+            <p role="status">
+              {run.finished
+                ? "Timed practice complete"
+                : run.since === null
+                  ? "Timed practice paused"
+                  : "Timed practice running"}
+            </p>
+            <p role="timer" aria-label="Time remaining">
+              {Math.ceil((run.duration - run.elapsed) / 1000)} seconds remaining
+            </p>
+          </div>
+          <p className="timed-metrics">
             {run.decisions} scored decisions ·{" "}
             {results!.accuracy === null
               ? "No accuracy yet"
               : `${results!.accuracy}% accuracy`}{" "}
             · {results!.perMinute.toFixed(1)} decisions/min
           </p>
-          {!run.finished && (
-            <>
-              <button
-                className="button secondary"
-                disabled={blocked}
-                onClick={() => {
-                  const latest = current.current!;
-                  update(
-                    latest.since === null
-                      ? { ...latest, since: performance.now() }
-                      : pauseTimer(latest, performance.now()),
-                  );
-                }}
-              >
-                {run.since === null ? "Resume timer" : "Pause timer"}
+          <div className="timed-actions">
+            {!run.finished && (
+              <>
+                <button
+                  className="button secondary"
+                  disabled={blocked}
+                  onClick={() => {
+                    const latest = current.current!;
+                    update(
+                      latest.since === null
+                        ? { ...latest, since: performance.now() }
+                        : pauseTimer(latest, performance.now()),
+                    );
+                  }}
+                >
+                  {run.since === null ? "Resume timer" : "Pause timer"}
+                </button>
+                <button
+                  className="button secondary"
+                  onClick={() =>
+                    update({
+                      ...pauseTimer(current.current!, performance.now()),
+                      finished: true,
+                    })
+                  }
+                >
+                  Finish timed practice
+                </button>
+              </>
+            )}
+            {run.finished && (
+              <button className="button secondary" onClick={onSetup}>
+                New timed challenge
               </button>
-              <button
-                className="button secondary"
-                onClick={() =>
-                  update({
-                    ...pauseTimer(current.current!, performance.now()),
-                    finished: true,
-                  })
-                }
-              >
-                Finish timed practice
-              </button>
-            </>
-          )}
-          {run.finished && (
-            <button className="button secondary" onClick={onSetup}>
-              New timed challenge
-            </button>
-          )}
+            )}
+          </div>
         </>
       )}
     </section>
@@ -163,5 +170,5 @@ export function useTimedPractice(
       </button>
     </form>
   );
-  return { panel, setup, record };
+  return { panel, setup, record, active: !!run };
 }

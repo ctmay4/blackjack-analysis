@@ -112,8 +112,9 @@ history does not reset the active session goal.
 The header toolbar beside Hand practice / Simulation offers Start timed practice,
 which opens the shared accessible modal with a labeled 1-/3-/5-minute duration
 selector and the scoring explanation. Cancel leaves practice unchanged; submitting
-starts the timer and closes setup. Pause/resume/finish controls and results remain
-in the toolbar. There is no separate timed-practice or Your focus sidebar panel;
+starts the timer and closes setup. Active/finished timer status, results, and
+pause/resume/finish controls use a separate compact bar below the toolbar,
+keeping the main button row aligned. There is no separate timed-practice or Your focus sidebar panel;
 Mastery exercises is also available from the top toolbar.
 `src/TimedPractice.tsx` owns the UI-only timer and scored-decision deltas;
 `src/timed-practice.ts` supplies elapsed-time, pause, and result helpers.

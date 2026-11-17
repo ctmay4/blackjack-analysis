@@ -68,5 +68,37 @@ for (const width of [320, 1440]) {
     await page.screenshot({
       path: test.info().outputPath(`header-${width}.png`),
     });
+    await page
+      .getByRole("button", { name: "Start timed practice", exact: true })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Start timed practice", exact: true })
+      .click();
+    const bar = page.getByRole("region", {
+      name: "Timed practice",
+      exact: true,
+    });
+    const barBox = (await bar.boundingBox())!;
+    expect(barBox.y).toBeGreaterThanOrEqual(modeBox.y + modeBox.height);
+    if (width === 1440) {
+      const controls = (await bar.locator(".timed-actions").boundingBox())!;
+      const status = (await bar.locator(".timed-status").boundingBox())!;
+      expect(
+        Math.abs(
+          controls.y + controls.height / 2 - status.y - status.height / 2,
+        ),
+      ).toBeLessThan(2);
+      expect(barBox.height).toBeLessThan(80);
+      expect(controls.x + controls.width).toBeGreaterThan(width - 80);
+    }
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: test.info().outputPath(`header-running-${width}.png`),
+    });
   });
 }
