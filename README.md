@@ -47,7 +47,7 @@ See [`frontend/README.md`](frontend/README.md) for architecture and testing.
 ### Basic-strategy practice
 
 - Practice all, hard, soft, pair, surrender, or frequently missed opening hands.
-- **Timed practice** in the practice sidebar offers optional 1-, 3-, and 5-minute
+- **Timed practice** beside the Hand practice / Simulation buttons offers optional 1-, 3-, and 5-minute
   challenges with scored decisions, accuracy, and decisions per active minute.
   Pause/resume or finish early; dialogs and hidden tabs pause automatically and
   require manual resume. The timer ending does not stop or replace practice.

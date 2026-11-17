@@ -109,7 +109,10 @@ history does not reset the active session goal.
 
 ## Timed practice
 
-The practice sidebar offers optional 1-, 3-, and 5-minute local challenges.
+The header toolbar beside Hand practice / Simulation offers optional 1-, 3-,
+and 5-minute local challenges. Duration, start/pause/resume/finish controls,
+and results stay near the top; Timer details expands the scoring explanation.
+There is no separate timed-practice sidebar panel.
 `src/TimedPractice.tsx` owns the UI-only timer and scored-decision deltas;
 `src/timed-practice.ts` supplies elapsed-time, pause, and result helpers.
 Elapsed time uses a monotonic clock, not interval counts. Dialogs, errors,

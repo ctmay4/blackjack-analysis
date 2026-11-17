@@ -836,6 +836,7 @@ export default function App() {
               </button>
             ))}
           </div>
+          {state && mode === "practice" && timed.panel}
           <nav aria-label="Tools">
             <button
               className="icon-button"
@@ -1292,7 +1293,6 @@ export default function App() {
                     Mastery exercises <span>↗</span>
                   </button>
                 </section>
-                {timed.panel}
                 <div className="quiet-note">
                   <span aria-hidden="true">✧</span>
                   <p>

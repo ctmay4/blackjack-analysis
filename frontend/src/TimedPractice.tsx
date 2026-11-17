@@ -63,25 +63,20 @@ export function useTimedPractice(
   }
   const results = run ? timedResults(run) : null;
   const panel = (
-    <section className="panel practice-panel" aria-label="Timed practice">
-      <div className="panel-heading">
-        <h2>Timed practice</h2>
-      </div>
+    <section className="timed-toolbar" aria-label="Timed practice">
       {!run ? (
         <>
-          <label className="field">
-            Challenge length
-            <select
-              value={seconds}
-              onChange={(event) => setSeconds(Number(event.target.value))}
-            >
-              <option value={60}>1 minute</option>
-              <option value={180}>3 minutes</option>
-              <option value={300}>5 minutes</option>
-            </select>
-          </label>
+          <select
+            aria-label="Challenge length"
+            value={seconds}
+            onChange={(event) => setSeconds(Number(event.target.value))}
+          >
+            <option value={60}>1 minute</option>
+            <option value={180}>3 minutes</option>
+            <option value={300}>5 minutes</option>
+          </select>
           <button
-            className="button primary full-width"
+            className="button primary"
             disabled={blocked}
             onClick={() => update(startTimedRun(seconds, performance.now()))}
           >
@@ -110,7 +105,7 @@ export function useTimedPractice(
           {!run.finished && (
             <>
               <button
-                className="panel-link"
+                className="button secondary"
                 disabled={blocked}
                 onClick={() => {
                   const latest = current.current!;
@@ -124,7 +119,7 @@ export function useTimedPractice(
                 {run.since === null ? "Resume timer" : "Pause timer"}
               </button>
               <button
-                className="panel-link"
+                className="button secondary"
                 onClick={() =>
                   update({
                     ...pauseTimer(current.current!, performance.now()),
@@ -137,21 +132,24 @@ export function useTimedPractice(
             </>
           )}
           {run.finished && (
-            <button className="panel-link" onClick={() => update(null)}>
+            <button className="button secondary" onClick={() => update(null)}>
               New timed challenge
             </button>
           )}
         </>
       )}
-      <p className="form-note">
-        Optional timer; practice continues when it ends. Dialogs and hidden tabs
-        pause it; resume manually. Speed uses active time, including dealing and
-        feedback. Only scores committed while running count; delayed choices
-        count when the round ends, including choices made before starting or
-        while paused. Correction retries follow normal scoring. Timer results
-        reset on refresh or session replacement and are not saved to history or
-        backups.
-      </p>
+      <details className="timed-details">
+        <summary>Timer details</summary>
+        <p className="form-note">
+          Optional timer; practice continues when it ends. Dialogs and hidden
+          tabs pause it; resume manually. Speed uses active time, including
+          dealing and feedback. Only scores committed while running count;
+          delayed choices count when the round ends, including choices made
+          before starting or while paused. Correction retries follow normal
+          scoring. Timer results reset on refresh or session replacement and are
+          not saved to history or backups.
+        </p>
+      </details>
     </section>
   );
   return { panel, record };

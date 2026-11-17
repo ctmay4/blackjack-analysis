@@ -21,6 +21,25 @@ for (const width of [320, 1440]) {
       ).toBeLessThan(2);
       expect(toolBox.x).toBeGreaterThan(modeBox.x + modeBox.width);
       expect(toolBox.x + toolBox.width).toBeGreaterThan(width - 60);
+      const start = page.getByRole("button", {
+        name: "Start timed practice",
+        exact: true,
+      });
+      const startBox = (await start.boundingBox())!;
+      expect(
+        Math.abs(
+          startBox.y + startBox.height / 2 - modeBox.y - modeBox.height / 2,
+        ),
+      ).toBeLessThan(2);
+      expect(startBox.x).toBeGreaterThan(modeBox.x + modeBox.width);
+      await expect(
+        page
+          .locator(".sidebar")
+          .getByRole("region", { name: "Timed practice" }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText("Optional timer;", { exact: false }),
+      ).not.toBeVisible();
       expect(
         (await page.locator(".page-heading").boundingBox())!.y,
       ).toBeLessThan(150);

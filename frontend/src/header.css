@@ -27,6 +27,47 @@
 .simulation-page > h1 {
   margin: 16px 0 8px;
 }
+.timed-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.timed-toolbar select {
+  padding: 10px;
+  border: 1px solid #ffffff18;
+  border-radius: 7px;
+  background: #101b20;
+  color: var(--text);
+}
+.timed-toolbar p {
+  margin: 0;
+  font-size: 12px;
+}
+.timed-toolbar > p:last-of-type {
+  flex-basis: 100%;
+  order: 1;
+}
+.timed-toolbar .timed-details {
+  border: 0;
+  padding: 0;
+}
+.timed-details[open] {
+  flex-basis: 100%;
+  order: 2;
+}
+.timed-details .form-note {
+  max-width: 65ch;
+  padding-top: 8px;
+}
+@media (max-width: 900px) {
+  .timed-toolbar {
+    flex-basis: 100%;
+    order: 1;
+  }
+}
 @media (max-width: 600px) {
   .live-app .app-header {
     padding-top: 12px;
